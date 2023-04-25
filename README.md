@@ -2,6 +2,7 @@
 
 This is the lab for Problem Solving Ⅳ in Nanjing University in 2023.
 
+This lab is to write strategy for the simplified version of the Overcooked game.
 
 ## Get Started
 
@@ -36,4 +37,4 @@ XXXXXX.zip
   - .git
 ```
 
-On Linux/macOS, run `make submit TOKEN=token` or submit manually.
+On macOS, run `make submit TOKEN=token` or submit manually.
