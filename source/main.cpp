@@ -7,7 +7,6 @@
 
 int main()
 {
-    std::cerr << "CJY print \n";
     std::ios::sync_with_stdio(false);
     std::cerr.tie(nullptr);
     std::cerr << std::nounitbuf;
