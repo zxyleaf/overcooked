@@ -71,4 +71,5 @@ std::pair<std::string, std::string> dealWithAction();
 PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY);
 
 std::pair<double, double> findValidLocation(int x, int y);
+std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y);
 #endif
