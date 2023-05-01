@@ -54,6 +54,8 @@ inline std::string getAction(PlayerAction action) {
         return "Move ";
     case PlayerAction::Interact:
         return "Interact ";
+    default:
+        return "";
     }
 }
 inline std::string getDir(PlayerDir dir) {
