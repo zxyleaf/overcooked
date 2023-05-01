@@ -4,16 +4,22 @@
 #include <string>
 
 enum class PlayerAction {
+    None,
     Move,
     Interact,
     PutOrPick
 };
 
 enum class PlayerDir {
+    None,
     U,
     D,
     L,
-    R
+    R,
+    UR,
+    UL,
+    DR,
+    DL
 };
 
 enum class ContainerKind {
@@ -60,6 +66,16 @@ inline std::string getDir(PlayerDir dir) {
       return "L";
     case PlayerDir::R:
       return "R";
+    case PlayerDir::UR:
+      return "UR";
+    case PlayerDir::UL:
+      return "UL";
+    case PlayerDir::DR:
+      return "DR";
+    case PlayerDir::DL:
+      return "DL";
+    default:
+      return "";
     }
 }
 

@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 
+const int INF = 0x3f3f3f;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -24,6 +25,9 @@ struct Player Players[2 + 5];
 int entityCount;
 struct Entity Entity[20 + 5];
 int remainFrame, Fund;
+
+int StoveNum = 0, chopNum = 0;
+std::pair<double, double> sinkPlace, plateRackPlace, PlateReturn, chopPlace[20 + 5], servicePlace, StovePlace[20 + 5];
 
 
 
@@ -81,6 +85,10 @@ void init_read()
         ss >> Players[i].x >> Players[i].y;
         Players[i].containerKind = ContainerKind::None;
         Players[i].entity.clear();
+        Players[i].OnTheWay = PlayerDir::None;
+        Players[i].targetLocation = std::make_pair(Players[i].x, Players[i].y);
+        Players[i].OrderId = INF;
+        Players[i].OrderIdx = 0;
     }
 
     /* 读入实体信息：坐标、实体组成 */
@@ -121,6 +129,7 @@ bool frame_read(int nowFrame)
     {
         ss >> Order[i].validFrame >> Order[i].price;
         Order[i].recipe.clear();
+        Order[i].PlayerId = 0;
         getline(ss, s);
         std::stringstream tmp(s);
         while (tmp >> s)
@@ -215,10 +224,122 @@ bool frame_read(int nowFrame)
     return false;
 }
 
+std::pair<double, double> findValidLocation(int y, int x) {
+    std::pair<double, double> ret;
+    printf("y = %d x = %d\n",y, x);
+    if (x + 1 < width && getTileKind(Map[x + 1][y]) == TileKind::Floor) {
+        ret = std::make_pair(y, x + 1);
+    }
+    else if (x - 1 >= 0 && getTileKind(Map[x - 1][y]) == TileKind::Floor) {
+        ret = std::make_pair(y, x - 1);
+    }
+    else if (y + 1 < height && getTileKind(Map[x][y + 1]) == TileKind::Floor) {
+        ret = std::make_pair(y + 1, x);
+    }
+    else if (y - 1 >= 0 && getTileKind(Map[x][y - 1]) == TileKind::Floor) {
+        ret = std::make_pair(y - 1, x);
+    }
+    return ret;
+}
 void init() {
-
+    for (int i = 0; i < IngredientCount; i++) {
+        printf("i = %d\n", i);
+        Ingredient[i].availableLoc = findValidLocation(Ingredient[i].x, Ingredient[i].y);
+    }
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++) {
+            if (getTileKind(Map[i][j]) == TileKind::ChoppingStation) {
+                chopPlace[++chopNum] = findValidLocation(j, i);
+            }
+            else if (getTileKind(Map[i][j]) == TileKind::ServiceWindow) {
+                servicePlace = findValidLocation(j, i);
+            }
+            else if (getTileKind(Map[i][j]) == TileKind::Stove) {
+                StovePlace[++StoveNum] = findValidLocation(j, i);
+            }
+            else if (getTileKind(Map[i][j]) == TileKind::PlateReturn) {
+                PlateReturn = findValidLocation(j, i);
+            }
+            else if (getTileKind(Map[i][j]) == TileKind::Sink) {
+                sinkPlace = findValidLocation(j, i);
+            }
+            else if (getTileKind(Map[i][j]) == TileKind::PlateRack) {
+                plateRackPlace = findValidLocation(j, i);
+            }
+        }
 }
 
 std::pair<std::string, std::string> dealWithAction() {
+    std::string ret[2];
+    for (int i = 0; i < k; i++) {
+        if (Players[i].OnTheWay != PlayerDir::None) {
+            assert(Players[i].OrderId != INF);
+            ret[i] = getAction(PlayerAction::Move);
+            PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
+            ret[i] += getDir(tempDir);
+            if (tempDir == PlayerDir::None) {
+                Players[i].OnTheWay = PlayerDir::None;
+            }
+        }
+        else if (Players[i].OrderId == INF) {
+            for (int j = 0; j < orderCount; j++) {
+                if (!Order[j].PlayerId && Order[j].validFrame > 60) {
+                    Players[i].OrderId = j;
+                    Players[i].OrderIdx = 0;
+                    Order[j].PlayerId = i;
+                    bool serviceIngredient = false;
+                    for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
+                        if (Order[j].recipe[Players[i].OrderIdx] == Ingredient[tempIngredient].name) {
+                          serviceIngredient = true;
+                          std::pair<double, double> tempTarget;
+                          tempTarget = Ingredient[tempIngredient].availableLoc;
+                          Players[i].targetLocation = tempTarget;
+                          ret[i] = getAction(PlayerAction::Move);
+                          PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
+                          Players[i].OnTheWay = tempDir;
+                          ret[i] += getDir(tempDir);
+                          break;
+                        }
+                    }
+                    if (!serviceIngredient) {
+                        assert(0);
+                        /* todo: 不是原料、需要加工 */
+                    }
+                    break;
+                }
+            }
+        }
+        else {
 
+        }
+    }
+    return std::make_pair(ret[0], ret[1]);
+}
+PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY) {
+    if (targetX > tempX && targetY > tempY) {
+        return PlayerDir::DR;
+    }
+    else if (targetX > tempX && targetY < tempY) {
+        return PlayerDir::UR;
+    }
+    else if (targetX < tempX && targetY > tempY) {
+        return PlayerDir::DL;
+    }
+    else if (targetX < tempX && targetY < tempY) {
+        return PlayerDir::UL;
+    }
+    else if (targetX == tempX && targetY > tempY) {
+        return PlayerDir::D;
+    }
+    else if (targetX == tempX && targetY < tempY) {
+        return PlayerDir::U;
+    }
+    else if (targetX > tempX && targetY == tempY) {
+        return PlayerDir::R;
+    }
+    else if (targetX < tempX && targetY == tempY) {
+        return PlayerDir::L;
+    }
+    else
+        return PlayerDir::None;
 }

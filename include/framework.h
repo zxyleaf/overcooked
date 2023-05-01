@@ -9,6 +9,7 @@ struct Ingredient
 {
     int x, y, price;
     std::string name;
+    std::pair<double, double> availableLoc;
 };
 
 struct Recipe
@@ -23,6 +24,7 @@ struct Order
     int validFrame;
     int price;
     int frequency;
+    int PlayerId;
     std::vector<std::string> recipe;
 };
 
@@ -32,6 +34,10 @@ struct Player
     double X_Velocity;
     double Y_Velocity;
     int live;
+    int OrderId;
+    int OrderIdx;
+    std::pair<double, double> targetLocation;
+    PlayerDir OnTheWay;
     ContainerKind containerKind;
     std::vector<std::string> entity;
 };
@@ -56,4 +62,7 @@ void init();
 bool frame_read(int nowFrame);
 
 std::pair<std::string, std::string> dealWithAction();
+PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY);
+
+std::pair<double, double> findValidLocation(int x, int y);
 #endif
