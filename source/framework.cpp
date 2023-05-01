@@ -312,7 +312,7 @@ std::pair<std::string, std::string> dealWithAction() {
         ret[1] = "Move U";
         ret[0] = "Move D";
         adjust++;
-        if (adjust == 12) {
+        if (adjust == 18) {
             times = 0;
             adjust = 0;
         }
