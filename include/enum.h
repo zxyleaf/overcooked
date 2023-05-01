@@ -67,13 +67,13 @@ inline std::string getDir(PlayerDir dir) {
     case PlayerDir::R:
       return "R";
     case PlayerDir::UR:
-      return "UR";
+      return "RU";
     case PlayerDir::UL:
-      return "UL";
+      return "LU";
     case PlayerDir::DR:
-      return "DR";
+      return "RD";
     case PlayerDir::DL:
-      return "DL";
+      return "LD";
     default:
       return "";
     }
@@ -102,7 +102,7 @@ inline TileKind getTileKind(char kindChar) {
     case 'r':
         return TileKind::PlateRack;
     default:
-        assert(0);
+        return TileKind::None;
     }
 }
 

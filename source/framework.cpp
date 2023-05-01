@@ -7,8 +7,10 @@
 #include <cassert>
 #include <vector>
 #include <string>
+#include <cmath>
 
 const int INF = 0x3f3f3f;
+const double esp = 5e-2;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -27,6 +29,8 @@ struct Entity Entity[20 + 5];
 int remainFrame, Fund;
 
 int StoveNum = 0, chopNum = 0;
+int PlateNum = 0, dirtyPlateNum = 0;
+std::pair<int, int> servicePlace_int;
 std::pair<double, double> sinkPlace, plateRackPlace, PlateReturn, chopPlace[20 + 5], servicePlace, StovePlace[20 + 5];
 
 
@@ -87,8 +91,12 @@ void init_read()
         Players[i].entity.clear();
         Players[i].OnTheWay = PlayerDir::None;
         Players[i].targetLocation = std::make_pair(Players[i].x, Players[i].y);
+        Players[i].targetDir = PlayerDir::None;
         Players[i].OrderId = INF;
         Players[i].OrderIdx = 0;
+        Players[i].finish = 0;
+        Players[i].toEnd = 0;
+        Players[i].over = 0;
     }
 
     /* 读入实体信息：坐标、实体组成 */
@@ -97,6 +105,7 @@ void init_read()
     {
         ss >> Entity[i].x >> Entity[i].y >> s;
         Entity[i].entity.push_back(s);
+        Entity[i].PlayerId = 3;
     }
 }
 
@@ -177,6 +186,8 @@ bool frame_read(int nowFrame)
     }
 
     ss >> entityCount;
+    PlateNum = 0;
+    dirtyPlateNum = 0;
     /* 读入实体坐标 */
     for (int i = 0; i < entityCount; i++)
     {
@@ -211,10 +222,10 @@ bool frame_read(int nowFrame)
                 Todo: 其他容器
             */
             if (s == "Plate")
-                Entity[i].containerKind = ContainerKind::Plate;
+                Entity[i].containerKind = ContainerKind::Plate, PlateNum++;
             else if (s == "DirtyPlates")
             {
-                Entity[i].containerKind = ContainerKind::DirtyPlates;
+                Entity[i].containerKind = ContainerKind::DirtyPlates, dirtyPlateNum++;
                 tmp >> Entity[i].sum;
             }
             else
@@ -226,24 +237,24 @@ bool frame_read(int nowFrame)
 
 std::pair<double, double> findValidLocation(int y, int x) {
     std::pair<double, double> ret;
-    printf("y = %d x = %d\n",y, x);
+    std::cerr << "x: " << x << " y:" << y << std::endl;
+    //std::cerr << "Map" << Map[x + 1][y] << std::endl;
     if (x + 1 < width && getTileKind(Map[x + 1][y]) == TileKind::Floor) {
-        ret = std::make_pair(y, x + 1);
+        ret = std::make_pair((double)y + 0.5, (double)x + 1.5);
     }
     else if (x - 1 >= 0 && getTileKind(Map[x - 1][y]) == TileKind::Floor) {
-        ret = std::make_pair(y, x - 1);
+        ret = std::make_pair((double)y + 0.5, (double)x - 0.5);
     }
     else if (y + 1 < height && getTileKind(Map[x][y + 1]) == TileKind::Floor) {
-        ret = std::make_pair(y + 1, x);
+        ret = std::make_pair((double)y + 1.5, (double)x + 0.5);
     }
     else if (y - 1 >= 0 && getTileKind(Map[x][y - 1]) == TileKind::Floor) {
-        ret = std::make_pair(y - 1, x);
+        ret = std::make_pair((double)y - 0.5, (double)x + 0.5);
     }
     return ret;
 }
 void init() {
     for (int i = 0; i < IngredientCount; i++) {
-        printf("i = %d\n", i);
         Ingredient[i].availableLoc = findValidLocation(Ingredient[i].x, Ingredient[i].y);
     }
     for (int i = 0; i < height; i++)
@@ -253,6 +264,7 @@ void init() {
             }
             else if (getTileKind(Map[i][j]) == TileKind::ServiceWindow) {
                 servicePlace = findValidLocation(j, i);
+                servicePlace_int = std::make_pair(j, i);
             }
             else if (getTileKind(Map[i][j]) == TileKind::Stove) {
                 StovePlace[++StoveNum] = findValidLocation(j, i);
@@ -276,10 +288,24 @@ std::pair<std::string, std::string> dealWithAction() {
             assert(Players[i].OrderId != INF);
             ret[i] = getAction(PlayerAction::Move);
             PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
+
             ret[i] += getDir(tempDir);
             if (tempDir == PlayerDir::None) {
                 Players[i].OnTheWay = PlayerDir::None;
+                if (Players[i].finish == 1) {
+                    Players[i].finish = 0;
+                    Players[i].toEnd = 1;
+                }
+                if (Players[i].containerKind == ContainerKind::Plate && Players[i].toEnd == 1) {
+                    Players[i].finish = 0;
+                    Players[i].over = 1;
+                    std::cerr << "arrived!!!" << std::endl;
+                }
             }
+        }
+        else if (dirtyPlateNum > 0) {
+            /* todo: 洗盘子 */
+            std::cerr << "wash the dishes!!!" << std::endl;
         }
         else if (Players[i].OrderId == INF) {
             for (int j = 0; j < orderCount; j++) {
@@ -294,10 +320,23 @@ std::pair<std::string, std::string> dealWithAction() {
                           std::pair<double, double> tempTarget;
                           tempTarget = Ingredient[tempIngredient].availableLoc;
                           Players[i].targetLocation = tempTarget;
+                          if (Ingredient[tempIngredient].x >= tempTarget.first) {
+                            Players[i].targetDir = PlayerDir::R;
+                          }
+                          else if (Ingredient[tempIngredient].y >= tempTarget.second) {
+                            Players[i].targetDir = PlayerDir::D;
+                          }
+                          else if (Ingredient[tempIngredient].x + 1 <= tempTarget.first) {
+                            Players[i].targetDir = PlayerDir::L;
+                          }
+                          else {
+                            Players[i].targetDir = PlayerDir::U;
+                          }
                           ret[i] = getAction(PlayerAction::Move);
                           PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
                           Players[i].OnTheWay = tempDir;
                           ret[i] += getDir(tempDir);
+                          //std::cerr << "here! ret " <<  "i = " << i << ret[i] << std::endl;
                           break;
                         }
                     }
@@ -309,37 +348,112 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else {
+        else if (PlateNum > 0 && Players[i].finish == 0 && Players[i].over == 0) {
+            if (Players[i].containerKind == ContainerKind::Plate) {
+                Players[i].finish = 1;
+                ret[i] = "Move ";
+                continue ;
+            }
+            ret[i] = getAction(PlayerAction::PutOrPick);
+            ret[i] += getDir(Players[i].targetDir);
+            if (Players[i].toEnd == 0)
+                Players[i].finish = 1;
+        }
+        else if (PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
 
+            for (int j = 0; j < entityCount; j++) {
+                if (Entity[j].containerKind == ContainerKind::Plate && Entity[j].PlayerId == 3) {
+                    Entity[j].PlayerId = i;
+                    std::pair<double, double> tempTarget;
+                    tempTarget = findValidLocation(Entity[j].x, Entity[j].y);
+                    Players[i].targetLocation = tempTarget;
+                    if (Entity[j].x >= tempTarget.first) {
+                        Players[i].targetDir = PlayerDir::R;
+                    }
+                    else if (Entity[j].y >= tempTarget.second) {
+                        Players[i].targetDir = PlayerDir::D;
+                    }
+                    else if (Entity[j].x + 1 <= tempTarget.first) {
+                        Players[i].targetDir = PlayerDir::L;
+                    }
+                    else {
+                        Players[i].targetDir = PlayerDir::U;
+                    }
+                    ret[i] = getAction(PlayerAction::Move);
+                    PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
+                    Players[i].OnTheWay = tempDir;
+                    ret[i] += getDir(tempDir);
+                    break;
+                }
+            }
+        }
+        else if (Players[i].toEnd == 1 && Players[i].over == 0) {
+            std::pair<double, double> tempTarget;
+            tempTarget = servicePlace;
+            Players[i].targetLocation = tempTarget;
+            if (servicePlace_int.first >= tempTarget.first) {
+                Players[i].targetDir = PlayerDir::R;
+            }
+            else if (servicePlace_int.second >= tempTarget.second) {
+                Players[i].targetDir = PlayerDir::D;
+            }
+            else if (servicePlace_int.first + 1 <= tempTarget.first) {
+                Players[i].targetDir = PlayerDir::L;
+            }
+            else {
+                Players[i].targetDir = PlayerDir::U;
+            }
+            ret[i] = getAction(PlayerAction::Move);
+            PlayerDir tempDir = dealWithDir(Players[i].targetLocation.first, Players[i].targetLocation.second, Players[i].x, Players[i].y);
+            Players[i].OnTheWay = tempDir;
+            ret[i] += getDir(tempDir);
+        }
+        else if (Players[i].over == 1) {
+            ret[i] = getAction(PlayerAction::PutOrPick);
+            ret[i] += getDir(Players[i].targetDir);
+            Players[i].OrderId = INF;
+            Players[i].finish = 0;
+            Players[i].toEnd = 0;
+            Players[i].over = 0;
+            for (int j = 0; j < entityCount; j++) {
+                Entity[j].PlayerId = 3;
+            }
+            for (int j = 0; j < orderCount; j++) {
+                Order[j].PlayerId = 0;
+            }
         }
     }
+    //std::cerr << "!ret " << ret[0] << ret[1] << std::endl;
     return std::make_pair(ret[0], ret[1]);
 }
 PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY) {
-    if (targetX > tempX && targetY > tempY) {
+    if (targetX - tempX > esp && targetY - tempY > esp) {
         return PlayerDir::DR;
     }
-    else if (targetX > tempX && targetY < tempY) {
+    else if (targetX - tempX > esp && tempY - targetY > esp) {
         return PlayerDir::UR;
     }
-    else if (targetX < tempX && targetY > tempY) {
+    else if (tempX - targetX > esp && targetY - tempY > esp) {
         return PlayerDir::DL;
     }
-    else if (targetX < tempX && targetY < tempY) {
+    else if (tempX - targetX > esp && tempY - targetY > esp) {
         return PlayerDir::UL;
     }
-    else if (targetX == tempX && targetY > tempY) {
+    else if (fabs(targetX - tempX) <= esp && targetY - tempY > esp) {
         return PlayerDir::D;
     }
-    else if (targetX == tempX && targetY < tempY) {
+    else if (fabs(targetX - tempX) <= esp && tempY - targetY > esp) {
         return PlayerDir::U;
     }
-    else if (targetX > tempX && targetY == tempY) {
+    else if (targetX - tempX > esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::R;
     }
-    else if (targetX < tempX && targetY == tempY) {
+    else if (tempX - targetX > esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::L;
     }
-    else
+    else {
+        std::cerr << "-----------------" << std::endl;
         return PlayerDir::None;
+    }
+
 }

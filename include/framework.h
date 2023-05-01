@@ -9,6 +9,7 @@ struct Ingredient
 {
     int x, y, price;
     std::string name;
+    int direction;
     std::pair<double, double> availableLoc;
 };
 
@@ -36,7 +37,11 @@ struct Player
     int live;
     int OrderId;
     int OrderIdx;
+    int finish;
+    int toEnd;
+    int over;
     std::pair<double, double> targetLocation;
+    PlayerDir targetDir;
     PlayerDir OnTheWay;
     ContainerKind containerKind;
     std::vector<std::string> entity;
@@ -48,6 +53,7 @@ struct Entity
     ContainerKind containerKind;
     std::vector<std::string> entity;
     int currentFrame, totalFrame;
+    int PlayerId;
     int sum;
 };
 

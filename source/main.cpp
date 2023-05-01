@@ -29,12 +29,13 @@ int main()
         if (skip) continue;
         /* 输出当前帧的操作，此处仅作示例 */
         std::cout << "Frame " << i << "\n";
-        std::string player0_Action;
-        std::string player1_Action;
-        std::make_pair(player0_Action, player1_Action) = dealWithAction();
+
+        std::pair<std::string, std::string> tempans = dealWithAction();
+        std::string player0_Action = tempans.first;
+        std::string player1_Action = tempans.second;
         /* 合成一个字符串再输出，否则输出有可能会被打断 */
         std::string action = player0_Action;
-        action += "\n" + player1_Action + "\n";
+        action += "\n" + player1_Action;
         std::cout << action;
 
         /* 不要忘记刷新输出流，否则游戏将无法及时收到响应 */
