@@ -306,13 +306,12 @@ std::pair<std::string, std::string> dealWithAction() {
     std::string ret[2];
     if (tooClose()) {
         times++;
-        //std::cerr << "times: " << times << std::endl;
     }
     if (times >= 60) {
-        ret[1] = "Move U";
-        ret[0] = "Move D";
+        ret[1] = "Move D";
+        ret[0] = "Move UR";
         adjust++;
-        if (adjust == 18) {
+        if (adjust == 12) {
             times = 0;
             adjust = 0;
         }
