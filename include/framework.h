@@ -49,7 +49,11 @@ struct Entity
 /* 初始化时的读入。 */
 void init_read();
 
+/* 相关预处理 */
+void init();
+
 /* 每一帧的读入；返回：是否跳帧。 */
 bool frame_read(int nowFrame);
 
+std::pair<std::string, std::string> dealWithAction();
 #endif

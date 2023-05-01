@@ -3,6 +3,19 @@
 #include <cassert>
 #include <string>
 
+enum class PlayerAction {
+    Move,
+    Interact,
+    PutOrPick
+};
+
+enum class PlayerDir {
+    U,
+    D,
+    L,
+    R
+};
+
 enum class ContainerKind {
     None,
     Pan,
@@ -18,7 +31,7 @@ enum class TileKind {
     Wall,
     Table,
     IngredientBox,
-    Trashbin,
+    TrashBin,
     ChoppingStation,
     ServiceWindow,
     Stove,
@@ -26,6 +39,29 @@ enum class TileKind {
     Sink,
     PlateRack,
 };
+
+inline std::string getAction(PlayerAction action) {
+    switch (action) {
+    case PlayerAction::PutOrPick:
+        return "PutOrPick ";
+    case PlayerAction::Move:
+        return "Move ";
+    case PlayerAction::Interact:
+        return "Interact ";
+    }
+}
+inline std::string getDir(PlayerDir dir) {
+    switch (dir) {
+    case PlayerDir::U:
+      return "U";
+    case PlayerDir::D:
+      return "D";
+    case PlayerDir::L:
+      return "L";
+    case PlayerDir::R:
+      return "R";
+    }
+}
 
 inline TileKind getTileKind(char kindChar) {
     switch (kindChar) {
@@ -36,7 +72,7 @@ inline TileKind getTileKind(char kindChar) {
     case '*':
         return TileKind::Table;
     case 't':
-        return TileKind::Trashbin;
+        return TileKind::TrashBin;
     case 'c':
         return TileKind::ChoppingStation;
     case '$':
@@ -58,7 +94,7 @@ inline char getAbbrev(TileKind kind) {
     switch (kind) {
     case TileKind::IngredientBox:
         return 'i';
-    case TileKind::Trashbin:
+    case TileKind::TrashBin:
         return 't';
     case TileKind::ChoppingStation:
         return 'c';

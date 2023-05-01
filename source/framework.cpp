@@ -25,6 +25,8 @@ int entityCount;
 struct Entity Entity[20 + 5];
 int remainFrame, Fund;
 
+
+
 void init_read()
 {
     std::string s;
@@ -211,4 +213,12 @@ bool frame_read(int nowFrame)
         }
     }
     return false;
+}
+
+void init() {
+
+}
+
+std::pair<std::string, std::string> dealWithAction() {
+
 }
