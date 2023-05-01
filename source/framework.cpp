@@ -437,7 +437,7 @@ std::pair<std::string, std::string> dealWithAction() {
             ret[i] += getDir(Players[i].targetDir);
         }
         else {
-            ret[i] = addTarget(i, Ingredient[0].availableLoc, Ingredient[0].x, Ingredient[0].y);
+            ret[i] = addTarget(i, Ingredient[1].availableLoc, Ingredient[1].x, Ingredient[1].y);
         }
     }
     return std::make_pair(ret[0], ret[1]);
