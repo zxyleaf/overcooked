@@ -40,6 +40,8 @@ struct Player
     int finish;
     int toEnd;
     int over;
+    int stay;
+    int sum;
     std::pair<double, double> targetLocation;
     PlayerDir targetDir;
     PlayerDir OnTheWay;

@@ -29,7 +29,6 @@ int main()
         if (skip) continue;
         /* 输出当前帧的操作，此处仅作示例 */
         std::cout << "Frame " << i << "\n";
-
         std::pair<std::string, std::string> tempans = dealWithAction();
         std::string player0_Action = tempans.first;
         std::string player1_Action = tempans.second;
