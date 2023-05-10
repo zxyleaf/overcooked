@@ -331,7 +331,7 @@ std::pair<std::string, std::string> dealWithAction() {
         times++;
     }
     if (times >= 120) {
-        ret[1] = "Move RU";
+        ret[1] = "Move R";
         ret[0] = "Move L";
         adjust++;
         if (adjust == 18) {
