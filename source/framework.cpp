@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 5e-2;
+const double esp = 0.4;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -289,7 +289,30 @@ void init() {
             }
         }
 }
+bool inTheSameCube(int x1, int y1, double x2, double y2, PlayerDir dir) {
+    int x = (int)x2;
+    int y = (int)y2;
+    switch (dir) {
+    case PlayerDir::D:
+        y = y + 1;
+        break;
+    case PlayerDir::U:
+        y = y - 1;
+        break;
+    case PlayerDir::R:
+        x = x + 1;
+        break;
+    case PlayerDir::L:
+        x = x - 1;
+        break;
+    }
+    std::cerr << "compare" << x1 << x << y1 << y << std::endl;
 
+    if (x1 == x && y1 == y) {
+        return true;
+    }
+    return false;
+}
 int times = 0;
 bool tooClose() {
     double x1 = Players[0].x;
@@ -318,7 +341,9 @@ std::pair<std::string, std::string> dealWithAction() {
         return std::make_pair(ret[0], ret[1]);
     }
     for (int i = 0; i < k; i++) {
+        int anotherOne = (1 + i) % k;
         if (Players[i].stay > 0) {
+            std::cerr << "p stay" << Players[i].stay << std::endl;
             if (Players[i].stay % 180 == 0) {
                  ret[i] = getAction(PlayerAction::Interact);
                  ret[i] += getDir(Players[i].targetDir);
@@ -340,6 +365,9 @@ std::pair<std::string, std::string> dealWithAction() {
             ret[i] += getDir(tempDir);
             if (tempDir == PlayerDir::None) {
                 Players[i].OnTheWay = PlayerDir::None;
+                //Players[i].targetDir = PlayerDir::None;
+                Players[i].targetLocation.first = 25;
+                Players[i].targetLocation.second = 25;
                 if (Players[i].finish == 1) {
                     Players[i].finish = 0;
                     Players[i].toEnd = 1;
@@ -375,20 +403,24 @@ std::pair<std::string, std::string> dealWithAction() {
         else if (Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
-                    usedPlateNum++;
-                    Players[i].OrderId = j;
-                    Players[i].OrderIdx = 0;
-                    Order[j].PlayerId = i;
                     bool serviceIngredient = false;
                     for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
                         if (Order[j].recipe[Players[i].OrderIdx] == Ingredient[tempIngredient].name) {
+                          std::cerr << "compare" << i << " to " << anotherOne << std::endl;
+                          if (inTheSameCube(Ingredient[tempIngredient].x, Ingredient[tempIngredient].y, Players[anotherOne].targetLocation.first, Players[anotherOne].targetLocation.second, Players[anotherOne].targetDir)) {
+                              break;
+                          }
+                          usedPlateNum++;
+                          Players[i].OrderId = j;
+                          Players[i].OrderIdx = 0;
+                          Order[j].PlayerId = i;
                           serviceIngredient = true;
                           ret[i] = addTarget(i, Ingredient[tempIngredient].availableLoc, Ingredient[tempIngredient].x, Ingredient[tempIngredient].y);
                           break;
                         }
                     }
                     if (!serviceIngredient) {
-                        assert(0);
+                        //assert(0);
                         /* todo: 不是原料、需要加工 */
                     }
                     break;
@@ -436,7 +468,20 @@ std::pair<std::string, std::string> dealWithAction() {
             ret[i] += getDir(Players[i].targetDir);
         }
         else {
-            ret[i] = addTarget(i, Ingredient[1].availableLoc, Ingredient[1].x, Ingredient[1].y);
+            int idx = 0;
+            for (int j = 0; j < totalOrderCount; j++) {
+                for (auto temp : totalOrder[j].recipe) {
+                    for (int In = 0; In < IngredientCount; In++) {
+                        if (temp == Ingredient[In].name) {
+                          idx = In;
+                          break;
+                        }
+                    }
+                    if (idx != 0)
+                        break;
+                }
+            };
+            ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
     }
     return std::make_pair(ret[0], ret[1]);
@@ -465,6 +510,51 @@ std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y
 }
 
 PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY) {
+    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+        return PlayerDir::None;
+    }
+    if (fabs(targetX - tempX) <= esp) {
+        if (targetY - tempY > esp) {
+            return PlayerDir::D;
+        }
+        else if (targetY - tempY < esp) {
+            return PlayerDir::U;
+        }
+    }
+    else if (fabs(targetY - tempY) <= esp) {
+        if (targetX - tempX > esp) {
+            return PlayerDir::R;
+        }
+        else if (targetX - tempX < esp) {
+            return PlayerDir::L;
+        }
+    }
+    else {
+        if (targetX - tempX > esp && targetY - tempY > esp) {
+            return PlayerDir::DR;
+        }
+        else if (targetX - tempX > esp && tempY - targetY > esp) {
+            return PlayerDir::UR;
+        }
+        else if (tempX - targetX > esp && targetY - tempY > esp) {
+            return PlayerDir::DL;
+        }
+        else if (tempX - targetX > esp && tempY - targetY > esp) {
+            return PlayerDir::UL;
+        }
+    }
+    if (targetX - tempX > esp) {
+        return PlayerDir::R;
+    }
+    else if (targetY - tempY > esp) {
+        return PlayerDir::D;
+    }
+    else if (targetX - tempX < esp) {
+        return PlayerDir::L;
+    }
+    else if (targetY - tempY < esp) {
+        return PlayerDir::U;
+    }
     if (targetX - tempX > esp && targetY - tempY > esp) {
         return PlayerDir::DR;
     }
