@@ -1,10 +1,11 @@
 #ifndef FRAMEWORK
 #define FRAMEWORK
 
+#include <stack>
 #include <string>
 #include <vector>
 #include <enum.h>
-
+#include <queue>
 struct Ingredient
 {
     int x, y, price;
@@ -20,8 +21,7 @@ struct Recipe
     std::string kind;
 };
 
-struct Order
-{
+struct Order {
     int validFrame;
     int price;
     int frequency;
@@ -29,8 +29,17 @@ struct Order
     std::vector<std::string> recipe;
 };
 
-struct Player
-{
+struct Mission {
+    std::vector<std::string> recipe;
+    std::stack<std::string> Places;
+    std::stack<std::pair<double, double>> targetLoc;
+    std::stack<std::pair<int, int>> targetCubeLoc;
+    std::stack<PlayerAction> action;
+    int shouldInterat;
+    int finish;
+    int allDone;
+};
+struct Player {
     double x, y;
     double X_Velocity;
     double Y_Velocity;
@@ -42,11 +51,13 @@ struct Player
     int over;
     int stay;
     int sum;
+    std::string targetPlace;
     std::pair<double, double> targetLocation;
     PlayerDir targetDir;
     PlayerDir OnTheWay;
     ContainerKind containerKind;
     std::vector<std::string> entity;
+    Mission mission;
 };
 
 struct Entity
@@ -70,7 +81,7 @@ void init();
 bool frame_read(int nowFrame);
 
 std::pair<std::string, std::string> dealWithAction();
-PlayerDir dealWithDir(double targetX, double targetY, double tempX, double tempY);
+PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY);
 
 std::pair<double, double> findValidLocation(int x, int y);
 std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y);
