@@ -14,6 +14,7 @@ const double esp = 0.35;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
+int bfsMap[20 + 5][20 + 5];
 int IngredientCount;
 struct Ingredient Ingredient[20 + 5];
 int recipeCount;
@@ -51,7 +52,7 @@ void stringToLoc(int id, const std::string& name, std::pair<int, int> &int_loc, 
         break ;
       }
     }
-    Players[id].mission.shouldInterat = 1;
+    //Players[id].mission.shouldInterat = 1;
   }
   else if (name == "pot") {
     for (int i = 0; i < entityCount; i++) {
@@ -63,9 +64,17 @@ void stringToLoc(int id, const std::string& name, std::pair<int, int> &int_loc, 
         break ;
       }
     }
-    Players[id].mission.shouldInterat = 1;
+    //Players[id].mission.shouldInterat = 1;
   }
   else if (name == "Plate") {
+    for (int j = 0; j < entityCount; j++) {
+      if (Entity[j].containerKind == ContainerKind::Plate && Entity[j].PlayerId == id) {
+        double_loc = findValidLocation((int )Entity[j].x, (int )Entity[j].y);
+        int_loc.first = (int )Entity[j].x;
+        int_loc.second = (int )Entity[j].y;
+        return ;
+      }
+    }
     for (int j = 0; j < entityCount; j++) {
       if (Entity[j].containerKind == ContainerKind::Plate && Entity[j].PlayerId == 3) {
         Entity[j].PlayerId = id;
@@ -79,6 +88,14 @@ void stringToLoc(int id, const std::string& name, std::pair<int, int> &int_loc, 
   else if (name == "ServiceWindow") {
     int_loc = servicePlace_int;
     double_loc = servicePlace;
+  }
+  else {
+    for (int j = 0; j < IngredientCount; j++) {
+      if (Ingredient[j].name == name) {
+        int_loc = std::make_pair(Ingredient[j].x, Ingredient[j].y);
+        double_loc = Ingredient[j].availableLoc;
+      }
+    }
   }
 }
 bool isIngredient(const std::string &name) {
@@ -327,7 +344,24 @@ std::pair<double, double> findValidLocation(int y, int x) {
     }
     return ret;
 }
-
+int numOfSC(int i) {
+    int numOfs = 0;
+    for (const std::string& name : totalOrder[i].recipe) {
+        if (name[0] == 's' && name[2] == 'f') {
+            numOfs++;
+        }
+    }
+    return numOfs;
+}
+int numOfS(int i) {
+    int numOfs = 0;
+    for (const std::string& name : totalOrder[i].recipe) {
+        if (name[0] == 's') {
+            numOfs++;
+        }
+    }
+    return numOfs;
+}
 void init() {
     for (int i = 0; i < IngredientCount; i++) {
         Ingredient[i].availableLoc = findValidLocation(Ingredient[i].x, Ingredient[i].y);
@@ -365,6 +399,44 @@ void init() {
         orderMission[i].Places.emplace("ServiceWindow");
         orderMission[i].allDone = 1;
         orderMission[i].action.push(PlayerAction::PutOrPick);
+        int numberOfS = numOfS(i);
+        int numberOfSC = numOfSC(i);
+        int recipeLen = (int )totalOrder[i].recipe.size();
+        int kind = 0;
+        if (numberOfS == 1) {
+            kind = 1;
+            int idx = 0;
+            for (const std::string& name : totalOrder[i].recipe) {
+                if (name[0] == 's') {
+                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[0]);
+                  break;
+                }
+                idx++;
+            }
+        }
+        else if (numberOfS == 2 && numberOfSC == 1) {
+            kind = 2;
+            int idx = 0;
+            for (const std::string& name : totalOrder[i].recipe) {
+                if (name[0] == 's') {
+                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[0]);
+                  break;
+                }
+                idx++;
+            }
+            idx = 0;
+            for (const std::string& name : totalOrder[i].recipe) {
+                if (idx != 0 && name[0] == 's') {
+                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[1]);
+                  break;
+                }
+                idx++;
+            }
+            if (totalOrder[i].recipe[1][2] == 'f') {
+                std::swap(totalOrder[i].recipe[0], totalOrder[i].recipe[1]);
+            }
+        }
+        int recipeCur = 1;
         for (const std::string& name : totalOrder[i].recipe) {
             orderMission[i].recipe.push_back(name);
             std::string tempName = name;
@@ -388,11 +460,18 @@ void init() {
                     orderMission[i].Places.emplace(kindName);
                     orderMission[i].allDone++;
 
-                    if (name == tempName && kindName != "chop") {
+                    if (name == tempName && kindName != "chop" && recipeCur== 1) {
+                      if (kind == 2) {
+                        orderMission[i].Places.emplace("pot");
+                        orderMission[i].allDone++;
+                      }
                       orderMission[i].Places.emplace("Plate");
                       orderMission[i].allDone++;
                       orderMission[i].Places.emplace(kindName);
                       orderMission[i].allDone++;
+                    }
+                    else if (name == tempName && kindName != "chop") {
+
                     }
                     tempName = Recipe[j].nameBefore;
                     break;
@@ -414,13 +493,15 @@ void init() {
                    orderMission[i].action.push(PlayerAction::PutOrPick);
                 }
             }
-            /*int myqueue_size = (int)orderMission[i].Places.size();
-            for(int j = 0; j < myqueue_size; j++) {   //myqueue_size 必须是固定值
-                std::cerr << i <<  orderMission[i].Places.top() << std::endl;
-                orderMission[i].Places.push(orderMission[i].Places.top());
-                orderMission[i].Places.pop();
-            }*/
+            recipeCur++;
         }
+        /*std::string val;
+        while(!orderMission[i].Places.empty())
+        {
+            val=orderMission[i].Places.top();
+            std::cerr << val << " ! " << std::endl;
+            orderMission[i].Places.pop();
+        }*/
     }
 }
 bool inTheSameCube(int x1, int y1, double x2, double y2, PlayerDir dir) {
@@ -488,6 +569,16 @@ bool isBlocked(int id, int anotherOne, std::pair<int, int>) {
     return false;
 }
 int adjust = 0;
+bool isFinish(int id) {
+    auto temp = Players[id].mission.Places.top();
+    Players[id].mission.Places.pop();
+    if (Players[id].mission.Places.top() == "ServiceWindow") {
+        Players[id].mission.Places.push(temp);
+        return true;
+    }
+    Players[id].mission.Places.push(temp);
+    return false;
+}
 std::pair<std::string, std::string> dealWithAction() {
     std::string ret[2];
     if (tooClose()) {
@@ -505,7 +596,7 @@ std::pair<std::string, std::string> dealWithAction() {
         }
         return std::make_pair(ret[0], ret[1]);
     }
-    for (int i = 0; i < k; i++) {
+    for (int i = 0; i < 2; i++) {
         int anotherOne = (1 + i) % k;
         if (Players[i].containerKind == ContainerKind::Plate) {
             for (int j = 0; j < 20; j++) { //拿到之后，就没有plate这个实体了
@@ -567,12 +658,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (isWashing == i) {
+        else if (i == 1 && isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -581,7 +672,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 ret[i] += getDir(Players[i].targetDir);
             }
         }
-        else if (Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
+        else if (i == 0 && Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
                     //std::cerr << "totalPlateNum = " << totalPlateNum << "usedPlateNum" << usedPlateNum << std::endl;
@@ -605,6 +696,7 @@ std::pair<std::string, std::string> dealWithAction() {
                     Players[i].OrderId = j;
                     Order[j].PlayerId = i;
                     usedPlateNum++;
+
                     for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
                         if (Players[i].mission.Places.top() == Ingredient[tempIngredient].name) {
                             ret[i] = addTarget(i, Ingredient[tempIngredient].availableLoc, Ingredient[tempIngredient].x, Ingredient[tempIngredient].y);
@@ -632,10 +724,10 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else if (Players[i].mission.allDone != 0) {
+        else if (i == 0 && Players[i].mission.allDone != 0) {
             //std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
             if (Players[i].mission.finish == 0) {
-                //std::cerr << "id" << i << "in 1" << std::endl;
+                std::cerr << "id" << i << "in 0" << std::endl;
                 if (Players[i].mission.Places.top() == "pot" && Players[i].containerKind == ContainerKind::Plate) {
                     for (int j = 0; j < entityCount; j++) {
                         if (Entity[j].containerKind == ContainerKind::Pot) { // 把东西从锅里拿出来
@@ -709,9 +801,22 @@ std::pair<std::string, std::string> dealWithAction() {
                     ret[i] = "Move";
                     continue ;
                 }
-                ret[i] = getAction(PlayerAction::PutOrPick);
-                ret[i] += getDir(Players[i].targetDir);
-                Players[i].mission.finish = 4;
+                if (isFinish(i)) {
+                    ret[i] = getAction(PlayerAction::PutOrPick);
+                    ret[i] += getDir(Players[i].targetDir);
+                    Players[i].mission.finish = 4;
+                }
+                else {
+                    Players[i].mission.Places.pop();
+                    Players[i].mission.allDone--;
+                    Players[i].mission.finish = 0;
+                    for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
+                        if (Players[i].mission.Places.top() == Ingredient[tempIngredient].name) {
+                            ret[i] = addTarget(i, Ingredient[tempIngredient].availableLoc, Ingredient[tempIngredient].x, Ingredient[tempIngredient].y);
+                            Players[i].targetPlace = Players[i].mission.Places.top();
+                        }
+                    }
+                }
             }
             else if (Players[i].mission.Places.top() == "ServiceWindow") {
                 std::cerr << "id" << i << "in service" << std::endl;
@@ -766,6 +871,7 @@ std::pair<std::string, std::string> dealWithAction() {
             }
         }
         else if (Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 0 && Players[i].over == 0) {
+            assert(0);
             if (Players[i].containerKind == ContainerKind::Plate) {
                 Players[i].finish = 1;
                 ret[i] = "Move ";
@@ -776,7 +882,7 @@ std::pair<std::string, std::string> dealWithAction() {
             if (Players[i].toEnd == 0)
                 Players[i].finish = 1;
         }
-        else if (Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
+        else if (i == 0 && Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
             Players[i].mission.allDone--;
             Players[i].mission.Places.pop();
             std::pair<int, int> int_loc;
@@ -813,7 +919,7 @@ std::pair<std::string, std::string> dealWithAction() {
             ret[i] = getAction(PlayerAction::PutOrPick);
             ret[i] += getDir(Players[i].targetDir);
         }
-        else {
+        else if (i == 0) {
             int idx = 0;
             for (int j = 0; j < totalOrderCount; j++) {
                 for (const auto& temp : totalOrder[j].recipe) {
@@ -854,14 +960,47 @@ std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y
     ret += getDir(tempDir);
     return ret;
 }
+int dirs[4][2] = { {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
 
+void bfs(int targetX, int targetY, int tempX, int tempY) {
+    std::queue<std::pair< int,int >> q;
+    q.emplace(tempX, tempY);
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++) {
+            if (TileKind(Map[i][j]) == TileKind::Floor) {
+                bfsMap[i][j] = 1;
+            }
+            else
+                bfsMap[i][j] = 0;
+        }
+    int res[25][25];
+    while (!q.empty()) {
+        int x = q.front().first, y = q.front().second;
+        q.pop();
+        for (auto & dir : dirs) {
+            int nx = x + dir[0],ny = y + dir[1];
+            //如果坐标取值合理并且找到的值为1且结果数组未曾访问过
+            if(nx >= 0 && nx < height && ny >= 0 && ny < width && bfsMap[nx][ny] == 1 && res[nx][ny] == 0)
+            {
+                //新结点的坐标值为旧结点的坐标值+1，意味着距离更远一格
+                res[nx][ny] = res[x][y] + 1;
+                //将新结点入队，并且继续遍历寻找
+                q.push( {nx,ny} );
+            }
+        }
+    }
+}
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
+
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= esp) {
+    if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
         if (targetY - tempY > esp) {
-            return PlayerDir::D;
+            if (Players[id].Y_Velocity < 3)
+                return PlayerDir::D;
+            else
+                return PlayerDir::STOP;
         }
         else if (targetY - tempY < esp) {
             return PlayerDir::U;

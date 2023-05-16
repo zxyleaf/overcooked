@@ -19,7 +19,8 @@ enum class PlayerDir {
     UR,
     UL,
     DR,
-    DL
+    DL,
+    STOP
 };
 
 enum class ContainerKind {
@@ -76,6 +77,8 @@ inline std::string getDir(PlayerDir dir) {
       return "RD";
     case PlayerDir::DL:
       return "LD";
+    case PlayerDir::STOP:
+      return " ";
     default:
       return "";
     }
