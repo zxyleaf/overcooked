@@ -408,7 +408,7 @@ void init() {
             int idx = 0;
             for (const std::string& name : totalOrder[i].recipe) {
                 if (name[0] == 's') {
-                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[0]);
+                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[recipeLen - 1]);
                   break;
                 }
                 idx++;
@@ -454,6 +454,10 @@ void init() {
                     }
                     std::string kindName = Recipe[j].kind.substr(1, end - 1);
                     if (name == tempName && kindName == "chop") {
+                      if (kind == 1) {
+                        orderMission[i].Places.emplace("pot");
+                        orderMission[i].allDone++;
+                      }
                       orderMission[i].Places.emplace("Plate");
                       orderMission[i].allDone++;
                     }
@@ -672,7 +676,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 ret[i] += getDir(Players[i].targetDir);
             }
         }
-        else if (i == 0 && Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
+        else if (/*i == 0 && */Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
                     //std::cerr << "totalPlateNum = " << totalPlateNum << "usedPlateNum" << usedPlateNum << std::endl;
@@ -724,8 +728,8 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else if (i == 0 && Players[i].mission.allDone != 0) {
-            //std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
+        else if (/*i == 0 && */Players[i].mission.allDone != 0) {
+            std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
             if (Players[i].mission.finish == 0) {
                 std::cerr << "id" << i << "in 0" << std::endl;
                 if (Players[i].mission.Places.top() == "pot" && Players[i].containerKind == ContainerKind::Plate) {
@@ -761,7 +765,11 @@ std::pair<std::string, std::string> dealWithAction() {
                 else {
                     ret[i] = getAction(PlayerAction::PutOrPick);
                     ret[i] += getDir(Players[i].targetDir);
-                    Players[i].mission.finish = 1; // 1 已经放下了
+                    //if (Players[i].containerKind == ContainerKind::Plate)
+                        Players[i].mission.finish = 1; // 1 已经放下了
+                    //else {
+                    //    std::cerr << "do not have plate " <<  Players[i].mission.Places.top() << std::endl;
+                    //}
                 }
 
             }
@@ -810,12 +818,22 @@ std::pair<std::string, std::string> dealWithAction() {
                     Players[i].mission.Places.pop();
                     Players[i].mission.allDone--;
                     Players[i].mission.finish = 0;
+                    bool isIn = false;
                     for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
                         if (Players[i].mission.Places.top() == Ingredient[tempIngredient].name) {
                             ret[i] = addTarget(i, Ingredient[tempIngredient].availableLoc, Ingredient[tempIngredient].x, Ingredient[tempIngredient].y);
                             Players[i].targetPlace = Players[i].mission.Places.top();
+                            isIn = true;
+                            break;
                         }
                     }
+                    /*if (!isIn) {
+                        std::pair<int, int> int_loc;
+                        std::pair<double, double> double_loc;
+                        stringToLoc(i, Players[i].mission.Places.top(), int_loc, double_loc);
+                        ret[i] = addTarget(i, double_loc, int_loc.first, int_loc.second);
+                    }*/
+                    std::cerr << "isIn" << isIn << std::endl;
                 }
             }
             else if (Players[i].mission.Places.top() == "ServiceWindow") {
