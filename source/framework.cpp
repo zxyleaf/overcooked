@@ -600,7 +600,7 @@ std::pair<std::string, std::string> dealWithAction() {
         }
         return std::make_pair(ret[0], ret[1]);
     }
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < k; i++) {
         int anotherOne = (1 + i) % k;
         if (Players[i].containerKind == ContainerKind::Plate) {
             for (int j = 0; j < 20; j++) { //拿到之后，就没有plate这个实体了
@@ -662,12 +662,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (/*i == 1 && */Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (i == 1 && isWashing == i) {
+        else if (/*i == 1 && */isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -805,16 +805,27 @@ std::pair<std::string, std::string> dealWithAction() {
             else if (Players[i].mission.finish == 1 && Players[i].mission.Places.top() == "Plate") {
                 std::cerr << "id" << i << "in 1,plate" << std::endl;
                 if (Players[i].containerKind == ContainerKind::Plate) {
-                    Players[i].mission.finish = 4;
-                    ret[i] = "Move";
-                    continue ;
+                    //if (isFinish(i)) {
+                        Players[i].mission.finish = 4;
+                        ret[i] = "Move";
+                        continue ;
+//                    }
+//                    Players[i].mission.Places.pop();
+//                    Players[i].mission.allDone--;
+//                    Players[i].mission.finish = 0;
+//                    std::pair<int, int> int_loc;
+//                    std::pair<double, double> double_loc;
+//                    stringToLoc(i, Players[i].mission.Places.top(), int_loc, double_loc);
+//                    ret[i] = addTarget(i, double_loc, int_loc.first, int_loc.second);
                 }
+                std::cerr << "without plate " << std::endl;
                 if (isFinish(i)) {
                     ret[i] = getAction(PlayerAction::PutOrPick);
                     ret[i] += getDir(Players[i].targetDir);
                     Players[i].mission.finish = 4;
                 }
                 else {
+                    std::cerr << "find Ingredient" << std::endl;
                     Players[i].mission.Places.pop();
                     Players[i].mission.allDone--;
                     Players[i].mission.finish = 0;
@@ -827,12 +838,10 @@ std::pair<std::string, std::string> dealWithAction() {
                             break;
                         }
                     }
-                    /*if (!isIn) {
-                        std::pair<int, int> int_loc;
-                        std::pair<double, double> double_loc;
-                        stringToLoc(i, Players[i].mission.Places.top(), int_loc, double_loc);
-                        ret[i] = addTarget(i, double_loc, int_loc.first, int_loc.second);
-                    }*/
+                    if (!isIn) {
+                        ret[i] = getAction(PlayerAction::PutOrPick);
+                        ret[i] += getDir(Players[i].targetDir);
+                    }
                     std::cerr << "isIn" << isIn << std::endl;
                 }
             }
