@@ -841,6 +841,7 @@ std::pair<std::string, std::string> dealWithAction() {
                     if (!isIn) {
                         ret[i] = getAction(PlayerAction::PutOrPick);
                         ret[i] += getDir(Players[i].targetDir);
+                        Players[i].mission.finish = 3;
                     }
                     std::cerr << "isIn" << isIn << std::endl;
                 }
