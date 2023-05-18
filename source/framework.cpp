@@ -353,6 +353,15 @@ int numOfSC(int i) {
     }
     return numOfs;
 }
+int numOfS_rice(int i) {
+    int numOfs = 0;
+    for (const std::string& name : totalOrder[i].recipe) {
+        if (name[0] == 's' && name[2] == 'r') {
+            numOfs++;
+        }
+    }
+    return numOfs;
+}
 int numOfS(int i) {
     int numOfs = 0;
     for (const std::string& name : totalOrder[i].recipe) {
@@ -361,6 +370,28 @@ int numOfS(int i) {
         }
     }
     return numOfs;
+}
+bool hasPlate(int i) {
+    std::string val;
+    std::stack <std::string> temp;
+    bool ret = false;
+    while(!orderMission[i].Places.empty())
+    {
+        val = orderMission[i].Places.top();
+        if (val == "Plate") {
+            ret = true;
+        }
+        temp.push(val);
+        orderMission[i].Places.pop();
+    }
+    //复原
+    while(!temp.empty())
+    {
+        val = temp.top();
+        temp.pop();
+        orderMission[i].Places.push(val);
+    }
+    return ret;
 }
 void init() {
     for (int i = 0; i < IngredientCount; i++) {
@@ -401,10 +432,24 @@ void init() {
         orderMission[i].action.push(PlayerAction::PutOrPick);
         int numberOfS = numOfS(i);
         int numberOfSC = numOfSC(i);
+        int numberOfS_rice = numOfS_rice(i);
         int recipeLen = (int )totalOrder[i].recipe.size();
         int kind = 0;
-        if (numberOfS == 1) {
-            kind = 1;
+        if (numberOfS == 1 && numberOfS_rice == 1) {
+            kind = 1; // 只有一个s 并且是米饭  最后肯定去pot
+            int idx = 0;
+            for (const std::string& name : totalOrder[i].recipe) {
+                if (name[0] == 's') {
+                  std::swap(totalOrder[i].recipe[idx], totalOrder[i].recipe[recipeLen - 1]);
+                  break;
+                }
+                idx++;
+            }
+            if (recipeLen >= 3)
+                std::swap(totalOrder[i].recipe[recipeLen - 3], totalOrder[i].recipe[recipeLen - 2]);
+        }
+        else if (numberOfS == 1 && numberOfSC == 1) {
+            kind = 3; // 只有一个s 是鱼
             int idx = 0;
             for (const std::string& name : totalOrder[i].recipe) {
                 if (name[0] == 's') {
@@ -415,7 +460,7 @@ void init() {
             }
         }
         else if (numberOfS == 2 && numberOfSC == 1) {
-            kind = 2;
+            kind = 2; // 有两个s 一个是rice 一个是fish
             int idx = 0;
             for (const std::string& name : totalOrder[i].recipe) {
                 if (name[0] == 's') {
@@ -438,6 +483,7 @@ void init() {
         }
         int recipeCur = 1;
         for (const std::string& name : totalOrder[i].recipe) {
+            std::cerr << "name :" << name << std::endl;
             orderMission[i].recipe.push_back(name);
             std::string tempName = name;
             bool single = true;
@@ -455,16 +501,18 @@ void init() {
                     std::string kindName = Recipe[j].kind.substr(1, end - 1);
                     if (name == tempName && kindName == "chop") {
                       if (kind == 1) {
+                        std::cerr << "current " << recipeCur << " recipeCur " << recipeCur << std::endl;
                         orderMission[i].Places.emplace("pot");
                         orderMission[i].allDone++;
                       }
                       orderMission[i].Places.emplace("Plate");
                       orderMission[i].allDone++;
+
                     }
                     orderMission[i].Places.emplace(kindName);
                     orderMission[i].allDone++;
 
-                    if (name == tempName && kindName != "chop" && recipeCur== 1) {
+                    if (name == tempName && kindName != "chop" && recipeCur == 1) {
                       if (kind == 2) {
                         orderMission[i].Places.emplace("pot");
                         orderMission[i].allDone++;
@@ -483,8 +531,13 @@ void init() {
                 }
             }
             if (single) {
-                orderMission[i].Places.emplace("Plate");
-                orderMission[i].allDone++;
+                if (kind == 1 && recipeCur == 1) {
+                  orderMission[i].Places.emplace("pot");
+                  orderMission[i].allDone++;
+                }
+
+                  orderMission[i].Places.emplace("Plate");
+                  orderMission[i].allDone++;
             }
             for (int j = 0; j < IngredientCount; j++) {
                 if (Ingredient[j].name == tempName) {
@@ -690,7 +743,7 @@ std::pair<std::string, std::string> dealWithAction() {
                                 findMission = false;
                             }
                         }
-                        if (findMission) {
+                        if (findMission && Order[j].recipe.size() == orderMission[missionId].recipe.size()) {
                             MissionId = missionId;
                             break;
                         }
@@ -700,7 +753,7 @@ std::pair<std::string, std::string> dealWithAction() {
                     Players[i].OrderId = j;
                     Order[j].PlayerId = i;
                     usedPlateNum++;
-
+                    std::cerr << "Players[i].OrderId = " << Players[i].OrderId  << " MissionId = "<< MissionId << std::endl;
                     for (int tempIngredient = 0; tempIngredient < IngredientCount; tempIngredient++) {
                         if (Players[i].mission.Places.top() == Ingredient[tempIngredient].name) {
                             ret[i] = addTarget(i, Ingredient[tempIngredient].availableLoc, Ingredient[tempIngredient].x, Ingredient[tempIngredient].y);
