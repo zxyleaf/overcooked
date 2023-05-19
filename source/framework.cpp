@@ -1102,6 +1102,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
+    std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
 
     std::pair<int, int> temp;
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
