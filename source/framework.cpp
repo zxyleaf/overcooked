@@ -1072,7 +1072,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
-            std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << std::endl;
+             std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << std::endl;
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
                 vis[tx][ty] = true;
@@ -1084,13 +1084,13 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
             }
         }
     }
-//    std::vector<int> ans;
-//    int p = targetX + targetY * width;
-//    while (p)
-//    {
-//        ans.push_back(p);
-//        p = path[p];
-//    }
+    std::vector<int> ans;
+    int p = targetX + targetY * width;
+    while (p)
+    {
+        ans.push_back(p);
+        p = path[p];
+    }
     //assert(Players[id].route.empty());
 //    std::cerr << "id = " <<id << std::endl;
 //    for (int i = (int)ans.size() - 2; i >= 0; i--)
