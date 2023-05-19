@@ -1056,7 +1056,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     if (targetX == tempX && targetY == tempY) {
         return;
     }
-    int path[128]; // 存每个节点的父节点，即路径
+    int path[512]; // 存每个节点的父节点，即路径
     bool vis[25][25]; // 判断某节点是否已经被访问过
     std::queue<node> q;
     node start = node(tempY, tempX, tempX + width * tempY);
@@ -1090,7 +1090,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     {
         std::cerr << "p = " << p << std::endl;
         ans.push_back(p);
-        assert(p >= 0 && p < 128);
+        assert(p >= 0 && p < 512);
         p = path[p];
     }
     //assert(Players[id].route.empty());
