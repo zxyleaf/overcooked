@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.35;
+const double esp = 0.3;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -651,7 +651,7 @@ std::pair<std::string, std::string> dealWithAction() {
     }
     if (times >= 120) {
         if (Players[1].stay <= 0)
-            ret[1] = "Move U";
+            ret[1] = "Move R";
         if (Players[0].stay <= 0)
             ret[0] = "Move L";
         adjust++;
@@ -723,12 +723,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if ( Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (i == 1 && isWashing == i) {
+        else if (isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -1133,7 +1133,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         targetX = targetX + 0.5;
         targetY = targetY + 0.5;
         std::cerr << "after targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        if (fabs(targetX - tempX) <= 0.35 && fabs(targetY - tempY) <= 0.35) {
+        if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
             //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
