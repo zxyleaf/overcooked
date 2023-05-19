@@ -1101,14 +1101,43 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
     std::pair<int, int> temp;
+
     if (Players[id].route.empty()) {
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
         temp = Players[id].route.front();
-        if ((int)temp.first == (int)tempX && (int)temp.second == (int)tempY) {
+        targetX = temp.first;
+        targetY = temp.second;
+        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        if ((int)targetX == (int)tempX && (int)targetY == (int)tempY) {
             std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
+            if (Players[id].route.empty()) {
+                return PlayerDir::None;
+            }
         }
     }
+    else {
+        temp = Players[id].route.front();
+        targetX = temp.first;
+        targetY = temp.second;
+        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        if ((int)targetX == (int)tempX && (int)targetY == (int)tempY) {
+            std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
+            Players[id].route.pop();
+            if (Players[id].route.empty()) {
+                return PlayerDir::None;
+            }
+            else {
+                temp = Players[id].route.front();
+                targetX = temp.first;
+                targetY = temp.second;
+            }
+
+        }
+        std::cerr << "another to " << targetX << " " << targetY << std::endl;
+    }
+    targetX = targetX + 0.5;
+    targetY = targetY + 0.5;
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
