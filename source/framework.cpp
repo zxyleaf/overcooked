@@ -1053,8 +1053,7 @@ std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y
 int vx[5] = {1, 0, -1, 0}; // vx  vy用来计算一个节点周围上下左右4个节点
 int vy[5] = {0, 1, 0, -1};
 void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
-    if (targetX == tempX && targetY == tempY)
-    {
+    if (targetX == tempX && targetY == tempY) {
         return;
     }
     int path[128]; // 存每个节点的父节点，即路径
@@ -1092,14 +1091,14 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         ans.push_back(p);
         p = path[p];
     }
-    assert(Players[id].route.empty());
-    std::cerr << "id = " <<id << std::endl;
-    for (int i = (int)ans.size() - 2; i >= 0; i--)
-    {
-        std::cerr << ans[i] << " -> ";
-        Players[id].route.emplace(ans[i] % width, ans[i] / width);
-    }
-    std::cerr << std::endl;
+    //assert(Players[id].route.empty());
+//    std::cerr << "id = " <<id << std::endl;
+//    for (int i = (int)ans.size() - 2; i >= 0; i--)
+//    {
+//        std::cerr << ans[i] << " -> ";
+//        Players[id].route.emplace(ans[i] % width, ans[i] / width);
+//    }
+//    std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
     std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
@@ -1113,7 +1112,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
 //    }
     if (Players[id].route.empty()) {
         std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        //bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
+        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
         if (Players[id].route.empty() == 0) {
             return PlayerDir::STOP;
         }
