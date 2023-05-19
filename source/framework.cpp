@@ -1111,7 +1111,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         return PlayerDir::STOP;
     }
     if (Players[id].route.empty()) {
-        //std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
         if (Players[id].route.empty() == 0) {
             return PlayerDir::STOP;
