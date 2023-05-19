@@ -1105,12 +1105,12 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
 
     std::pair<int, int> temp;
-    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
-        return PlayerDir::None;
-    }
-    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
-        return PlayerDir::STOP;
-    }
+//    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+//        return PlayerDir::None;
+//    }
+//    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
+//        return PlayerDir::STOP;
+//    }
     if (Players[id].route.empty()) {
         std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
