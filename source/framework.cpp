@@ -651,7 +651,7 @@ std::pair<std::string, std::string> dealWithAction() {
     }
     if (times >= 120) {
         if (Players[1].stay <= 0)
-            ret[1] = "Move R";
+            ret[1] = "Move U";
         if (Players[0].stay <= 0)
             ret[0] = "Move L";
         adjust++;
@@ -1024,6 +1024,9 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
+        else if (i == 1) {
+            ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
+        }
     }
     return std::make_pair(ret[0], ret[1]);
 }
@@ -1056,11 +1059,12 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     if (targetX == tempX && targetY == tempY) {
         return;
     }
-    int path[512]; // 存每个节点的父节点，即路径
+    int path[128]; // 存每个节点的父节点，即路径
     bool vis[25][25]; // 判断某节点是否已经被访问过
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             vis[i][j] = false;
+            path[i * width + j] = 0;
         }
     }
     std::queue<node> q;
@@ -1072,19 +1076,19 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         node u = q.front();
         q.pop();
         path[u.id] = u.parent;
-        std::cerr << "u.id = " << u.id << " " <<  path[u.id] << std::endl;
+        //std::cerr << "u.id = " << u.id << " " <<  path[u.id] << std::endl;
         for (int i = 0; i < 4; i++)
         {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
-             std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "vis " << vis[tx][ty] << std::endl;
+            // std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "vis " << vis[tx][ty] << std::endl;
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
                 vis[tx][ty] = true;
                 node v = node(tx, ty, ty + width * tx);
                 v.parent = u.id;
                 // std::cerr << "in bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "\n";
-                 std::cerr << "in " << v.x <<" " << v.y << " " << v.id<<std::endl;
+                //std::cerr << "in " << v.x <<" " << v.y << " " << v.id<<std::endl;
                 q.push(v);
             }
         }
@@ -1093,13 +1097,12 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     int p = targetX + targetY * width;
     while (p)
     {
-        std::cerr << "p = " << p << std::endl;
+        //std::cerr << "p = " << p << std::endl;
         ans.push_back(p);
         assert(p >= 0 && p < 512);
         p = path[p];
     }
     assert(Players[id].route.empty());
-    std::cerr << "id = " <<id << std::endl;
     for (int i = (int)ans.size() - 2; i >= 0; i--)
     {
         std::cerr << ans[i] << " -> ";
@@ -1108,15 +1111,16 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
-    std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-
-    std::pair<int, int> temp;
-//    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
-//        return PlayerDir::None;
-//    }
-//    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
-//        return PlayerDir::STOP;
-//    }
+       std::pair<int, int> temp;
+    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+        if (Players[id].route.empty() == 0) {
+            Players[id].route.pop();
+        }
+        return PlayerDir::None;
+    }
+    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
+        return PlayerDir::STOP;
+    }
     if (Players[id].route.empty()) {
         std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
@@ -1126,8 +1130,10 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         temp = Players[id].route.front();
         targetX = (double )temp.first;
         targetY = (double )temp.second;
-        //std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        if ((int)targetX == (int)tempX && (int)targetY == (int)tempY) {
+        targetX = targetX + 0.5;
+        targetY = targetY + 0.5;
+        std::cerr << "after targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        if (fabs(targetX - tempX) <= 0.35 && fabs(targetY - tempY) <= 0.35) {
             //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
@@ -1140,8 +1146,10 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         temp = Players[id].route.front();
         targetX = temp.first;
         targetY = temp.second;
-        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        if ((int)targetX == (int)tempX && (int)targetY == (int)tempY) {
+        targetX = targetX + 0.5;
+        targetY = targetY + 0.5;
+        std::cerr << "targetX " << fabs(targetX - tempX) << " " << fabs(targetY - tempY) << "temp "<< tempX << " " << tempY << std::endl;
+        if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
             std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
@@ -1152,13 +1160,13 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
                 temp = Players[id].route.front();
                 targetX = temp.first;
                 targetY = temp.second;
+                targetX = targetX + 0.5;
+                targetY = targetY + 0.5;
             }
 
         }
         std::cerr << "another to " << targetX << " " << targetY << std::endl;
     }
-    targetX = targetX + 0.5;
-    targetY = targetY + 0.5;
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
