@@ -58,6 +58,7 @@ struct Player {
     ContainerKind containerKind;
     std::vector<std::string> entity;
     Mission mission;
+    std::queue<std::pair<int, int>> route;
 };
 
 struct Entity
@@ -70,6 +71,18 @@ struct Entity
     int sum;
 };
 
+
+struct node {
+    int x;
+    int y;
+    int id;
+    int parent = 0;
+    node(int tx, int ty, int tid) {
+      x = tx;
+      y = ty;
+      id = tid;
+    }
+};
 
 /* 初始化时的读入。 */
 void init_read();

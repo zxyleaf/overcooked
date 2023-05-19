@@ -394,6 +394,14 @@ bool hasPlate(int i) {
     return ret;
 }
 void init() {
+    for (int i = 0; i < height; i++)
+        for (int j = 0; j < width; j++) {
+            if (getTileKind(Map[i][j]) == TileKind::Floor) {
+                bfsMap[i][j] = 1;
+            }
+            else
+                bfsMap[i][j] = 0;
+        }
     for (int i = 0; i < IngredientCount; i++) {
         Ingredient[i].availableLoc = findValidLocation(Ingredient[i].x, Ingredient[i].y);
     }
@@ -1041,38 +1049,66 @@ std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y
     ret += getDir(tempDir);
     return ret;
 }
-int dirs[4][2] = { {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
 
-void bfs(int targetX, int targetY, int tempX, int tempY) {
-    std::queue<std::pair< int,int >> q;
-    q.emplace(tempX, tempY);
-    for (int i = 0; i < height; i++)
-        for (int j = 0; j < width; j++) {
-            if (TileKind(Map[i][j]) == TileKind::Floor) {
-                bfsMap[i][j] = 1;
-            }
-            else
-                bfsMap[i][j] = 0;
-        }
-    int res[25][25];
-    while (!q.empty()) {
-        int x = q.front().first, y = q.front().second;
+int vx[5] = {1, 0, -1, 0}; // vx  vy用来计算一个节点周围上下左右4个节点
+int vy[5] = {0, 1, 0, -1};
+void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
+    if (targetX == tempX && targetY == tempY)
+    {
+        return;
+    }
+    int path[128]; // 存每个节点的父节点，即路径
+    bool vis[25][25]; // 判断某节点是否已经被访问过
+    std::queue<node> q;
+    node start = node(tempY, tempX, tempX + width * tempY);
+    q.push(start);
+    vis[tempY][tempX] = true;
+    while (!q.empty())
+    {
+        node u = q.front();
         q.pop();
-        for (auto & dir : dirs) {
-            int nx = x + dir[0],ny = y + dir[1];
-            //如果坐标取值合理并且找到的值为1且结果数组未曾访问过
-            if(nx >= 0 && nx < height && ny >= 0 && ny < width && bfsMap[nx][ny] == 1 && res[nx][ny] == 0)
+        path[u.id] = u.parent;
+        // std::cerr << "u.id = " << u.id << " " <<  path[u.id] << "\n";
+        for (int i = 0; i < 4; i++)
+        {
+            int tx = u.x + vx[i];
+            int ty = u.y + vy[i];
+            // std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "\n";
+            if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
-                //新结点的坐标值为旧结点的坐标值+1，意味着距离更远一格
-                res[nx][ny] = res[x][y] + 1;
-                //将新结点入队，并且继续遍历寻找
-                q.push( {nx,ny} );
+                vis[tx][ty] = true;
+                node v = node(tx, ty, ty + width * tx);
+                v.parent = u.id;
+                // std::cerr << "in bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "\n";
+                // std::cerr << "in " << v.x <<" " << v.y << " " << v.id<<"\n";
+                q.push(v);
             }
         }
     }
+    std::vector<int> ans;
+    int p = targetX + targetY * width;
+    while (p)
+    {
+        ans.push_back(p);
+        p = path[p];
+    }
+    for (int i = (int)ans.size() - 2; i >= 0; i--)
+    {
+        std::cerr << ans[i] << " -> ";
+        Players[id].route.emplace(ans[i] % width, ans[i] / width);
+    }
+    std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
-
+    std::pair<int, int> temp;
+    if (Players[id].route.empty()) {
+        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
+        temp = Players[id].route.front();
+        if ((int)temp.first == (int)tempX && (int)temp.second == (int)tempY) {
+            std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
+            Players[id].route.pop();
+        }
+    }
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
