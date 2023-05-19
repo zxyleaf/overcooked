@@ -1100,16 +1100,26 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
-    std::pair<int, int> temp;
 
+    std::pair<int, int> temp;
+    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+        return PlayerDir::None;
+    }
+    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
+        return PlayerDir::STOP;
+    }
     if (Players[id].route.empty()) {
-        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
-        temp = Players[id].route.front();
-        targetX = temp.first;
-        targetY = temp.second;
         std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
+        if (Players[id].route.empty() == 0) {
+            return PlayerDir::STOP;
+        }
+        temp = Players[id].route.front();
+        targetX = (double )temp.first;
+        targetY = (double )temp.second;
+        //std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         if ((int)targetX == (int)tempX && (int)targetY == (int)tempY) {
-            std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
+            //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
                 return PlayerDir::None;
@@ -1117,6 +1127,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         }
     }
     else {
+        assert(Players[id].route.empty() == 0);
         temp = Players[id].route.front();
         targetX = temp.first;
         targetY = temp.second;
@@ -1128,6 +1139,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
                 return PlayerDir::None;
             }
             else {
+                assert(Players[id].route.empty() == 0);
                 temp = Players[id].route.front();
                 targetX = temp.first;
                 targetY = temp.second;
