@@ -1068,19 +1068,19 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         node u = q.front();
         q.pop();
         path[u.id] = u.parent;
-        // std::cerr << "u.id = " << u.id << " " <<  path[u.id] << "\n";
+        std::cerr << "u.id = " << u.id << " " <<  path[u.id] << std::endl;
         for (int i = 0; i < 4; i++)
         {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
-            // std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "\n";
+             std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << std::endl;
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
                 vis[tx][ty] = true;
                 node v = node(tx, ty, ty + width * tx);
                 v.parent = u.id;
                 // std::cerr << "in bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "\n";
-                // std::cerr << "in " << v.x <<" " << v.y << " " << v.id<<"\n";
+                 std::cerr << "in " << v.x <<" " << v.y << " " << v.id<<std::endl;
                 q.push(v);
             }
         }
@@ -1092,6 +1092,8 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         ans.push_back(p);
         p = path[p];
     }
+    assert(Players[id].route.empty());
+    std::cerr << "id = " <<id << std::endl;
     for (int i = (int)ans.size() - 2; i >= 0; i--)
     {
         std::cerr << ans[i] << " -> ";
@@ -1109,7 +1111,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         return PlayerDir::STOP;
     }
     if (Players[id].route.empty()) {
-        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        //std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
         if (Players[id].route.empty() == 0) {
             return PlayerDir::STOP;
