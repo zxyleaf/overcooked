@@ -1058,6 +1058,11 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     }
     int path[512]; // 存每个节点的父节点，即路径
     bool vis[25][25]; // 判断某节点是否已经被访问过
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            vis[i][j] = false;
+        }
+    }
     std::queue<node> q;
     node start = node(tempY, tempX, tempX + width * tempY);
     q.push(start);
@@ -1072,7 +1077,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
-             std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << std::endl;
+             std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "vis " << vis[tx][ty] << std::endl;
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
                 vis[tx][ty] = true;
@@ -1093,14 +1098,14 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         assert(p >= 0 && p < 512);
         p = path[p];
     }
-    //assert(Players[id].route.empty());
-//    std::cerr << "id = " <<id << std::endl;
-//    for (int i = (int)ans.size() - 2; i >= 0; i--)
-//    {
-//        std::cerr << ans[i] << " -> ";
-//        Players[id].route.emplace(ans[i] % width, ans[i] / width);
-//    }
-//    std::cerr << std::endl;
+    assert(Players[id].route.empty());
+    std::cerr << "id = " <<id << std::endl;
+    for (int i = (int)ans.size() - 2; i >= 0; i--)
+    {
+        std::cerr << ans[i] << " -> ";
+        Players[id].route.emplace(ans[i] % width, ans[i] / width);
+    }
+    std::cerr << std::endl;
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
     std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
