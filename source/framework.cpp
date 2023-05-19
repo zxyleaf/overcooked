@@ -1088,7 +1088,9 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     int p = targetX + targetY * width;
     while (p)
     {
+        std::cerr << "p = " << p << std::endl;
         ans.push_back(p);
+        assert(p >= 0 && p < 128);
         p = path[p];
     }
     //assert(Players[id].route.empty());
