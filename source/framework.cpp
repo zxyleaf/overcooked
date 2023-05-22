@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.3;
+const double esp = 0.28;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -723,12 +723,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if ( Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (isWashing == i) {
+        else if (i == 1 && isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -1053,8 +1053,8 @@ std::string addTarget(int id, std::pair<double, double> tempTarget, int x, int y
     return ret;
 }
 
-int vx[5] = {1, 0, -1, 0}; // vx  vy用来计算一个节点周围上下左右4个节点
-int vy[5] = {0, 1, 0, -1};
+int vx[10] = {1, 0, -1, 0, 1, 1, -1, -1}; // vx  vy用来计算一个节点周围上下左右4个节点
+int vy[10] = {0, 1, 0, -1, 1, -1, 1, -1};
 void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     if (targetX == tempX && targetY == tempY) {
         return;
@@ -1077,13 +1077,29 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         q.pop();
         path[u.id] = u.parent;
         //std::cerr << "u.id = " << u.id << " " <<  path[u.id] << std::endl;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 8; i++)
         {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
             // std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "vis " << vis[tx][ty] << std::endl;
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
+                if (i == 4) {
+                    if (bfsMap[tx - 1][ty] == 0 && bfsMap[tx][ty - 1] == 0)
+                        continue ;
+                }
+                else if (i == 5) {
+                    if (bfsMap[tx - 1][ty] == 0 && bfsMap[tx][ty + 1] == 0)
+                        continue ;
+                }
+                else if (i == 6) {
+                    if (bfsMap[tx + 1][ty] == 0 && bfsMap[tx][ty - 1] == 0)
+                        continue ;
+                }
+                else if (i == 7) {
+                    if (bfsMap[tx + 1][ty] == 0 && bfsMap[tx][ty + 1] == 0)
+                        continue ;
+                }
                 vis[tx][ty] = true;
                 node v = node(tx, ty, ty + width * tx);
                 v.parent = u.id;
@@ -1099,7 +1115,6 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     {
         //std::cerr << "p = " << p << std::endl;
         ans.push_back(p);
-        assert(p >= 0 && p < 512);
         p = path[p];
     }
     assert(Players[id].route.empty());
@@ -1169,6 +1184,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     }
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
+    }
+    if (fabs(targetX - tempX) <= 0.8 && fabs(targetY - tempY) <= 0.8 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+        return PlayerDir::STOP;
     }
     if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
         if (targetY - tempY > esp) {
