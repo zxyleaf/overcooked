@@ -649,18 +649,18 @@ std::pair<std::string, std::string> dealWithAction() {
     if (tooClose()) {
         times++;
     }
-    if (times >= 120) {
-        if (Players[1].stay <= 0)
-            ret[1] = "Move R";
-        if (Players[0].stay <= 0)
-            ret[0] = "Move L";
-        adjust++;
-        if (adjust == 18) {
-            times = 0;
-            adjust = 0;
-        }
-        return std::make_pair(ret[0], ret[1]);
-    }
+//    if (times >= 120) {
+//        if (Players[1].stay <= 0)
+//            ret[1] = "Move D";
+//        if (Players[0].stay <= 0)
+//            ret[0] = "Move U";
+//        adjust++;
+//        if (adjust == 18) {
+//            times = 0;
+//            adjust = 0;
+//        }
+//        return std::make_pair(ret[0], ret[1]);
+//    }
     for (int i = 0; i < k; i++) {
         int anotherOne = (1 + i) % k;
         if (Players[i].containerKind == ContainerKind::Plate) {
@@ -1059,13 +1059,27 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     if (targetX == tempX && targetY == tempY) {
         return;
     }
+    int temp_another[128];
     int path[128]; // 存每个节点的父节点，即路径
     bool vis[25][25]; // 判断某节点是否已经被访问过
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             vis[i][j] = false;
             path[i * width + j] = 0;
+            temp_another[i * width + j] = 0;
         }
+    }
+
+    int Route_size = 0;
+    if (!Players[(id + 1) % k].route.empty()) {
+        Route_size = Players[(id + 1) % k].route.size();
+    }
+    for(int i = 0; i < Route_size; i++) {
+        std::cerr << "first " << Players[(id + 1) % k].route.front().first << " second " <<Players[(id + 1) % k].route.front().second << std::endl;
+        temp_another[i] = bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first];
+        bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first] = 0;
+        Players[(id + 1) % k].route.push(Players[(id + 1) % k].route.front());
+        Players[(id + 1) % k].route.pop();
     }
     std::queue<node> q;
     node start = node(tempY, tempX, tempX + width * tempY);
@@ -1085,19 +1099,19 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
             if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
             {
                 if (i == 4) {
-                    if (bfsMap[tx - 1][ty] == 0 && bfsMap[tx][ty - 1] == 0)
+                    if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty - 1] == 0)
                         continue ;
                 }
                 else if (i == 5) {
-                    if (bfsMap[tx - 1][ty] == 0 && bfsMap[tx][ty + 1] == 0)
+                    if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                 }
                 else if (i == 6) {
-                    if (bfsMap[tx + 1][ty] == 0 && bfsMap[tx][ty - 1] == 0)
+                    if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty - 1] == 0)
                         continue ;
                 }
                 else if (i == 7) {
-                    if (bfsMap[tx + 1][ty] == 0 && bfsMap[tx][ty + 1] == 0)
+                    if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                 }
                 vis[tx][ty] = true;
@@ -1116,6 +1130,11 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         //std::cerr << "p = " << p << std::endl;
         ans.push_back(p);
         p = path[p];
+    }
+    for(int i = 0; i < Route_size; i++) {
+        bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first] = temp_another[i];
+        Players[(id + 1) % k].route.push(Players[(id + 1) % k].route.front());
+        Players[(id + 1) % k].route.pop();
     }
     assert(Players[id].route.empty());
     for (int i = (int)ans.size() - 2; i >= 0; i--)
@@ -1139,7 +1158,8 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     if (Players[id].route.empty()) {
         std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
-        if (Players[id].route.empty() == 0) {
+        if (Players[id].route.empty()) {
+            std::cerr << "should stop " << targetX <<" " << targetY << std::endl;
             return PlayerDir::STOP;
         }
         temp = Players[id].route.front();
