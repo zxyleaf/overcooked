@@ -1230,9 +1230,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
-//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
-//        return PlayerDir::STOP;
-//    }
+    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+        return PlayerDir::STOP;
+    }
     if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
         if (targetY - tempY > esp) {
             if (Players[id].Y_Velocity < 3)
