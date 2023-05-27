@@ -601,7 +601,7 @@ bool tooClose() {
     double y1 = Players[0].y;
     double x2 = Players[1].x;
     double y2 = Players[1].y;
-    if (fabs(x1 - x2) <= (double )1 && fabs(y1 - y2) <= (double )1) {
+    if (Players[0].stay <= 0 && Players[1].stay <= 0 && fabs(x1 - x2) <= (double )1 && fabs(y1 - y2) <= (double )1) {
         return true;
     }
     return false;
@@ -651,9 +651,9 @@ std::pair<std::string, std::string> dealWithAction() {
     }
 //    if (times >= 120) {
 //        if (Players[1].stay <= 0)
-//            ret[1] = "Move D";
+//            ret[1] = "Move U";
 //        if (Players[0].stay <= 0)
-//            ret[0] = "Move U";
+//            ret[0] = "Move L";
 //        adjust++;
 //        if (adjust == 18) {
 //            times = 0;
@@ -1024,7 +1024,7 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
-        else if (i == 1) {
+        else if (i == 1 && dirtyPlateNum > 0) {
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
         }
     }
@@ -1067,6 +1067,9 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
             vis[i][j] = false;
             path[i * width + j] = 0;
             temp_another[i * width + j] = 0;
+            if (bfsMap[i][j] == 2) {
+                bfsMap[i][j] = 1;
+            }
         }
     }
 
@@ -1074,12 +1077,26 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
     if (!Players[(id + 1) % k].route.empty()) {
         Route_size = Players[(id + 1) % k].route.size();
     }
+    int temp_x = (int )Players[(id + 1) % k].x;
+    int temp_y = (int )Players[(id + 1) % k].y;
+    std::queue<std::pair<int, int>> temp_queue;
     for(int i = 0; i < Route_size; i++) {
         std::cerr << "first " << Players[(id + 1) % k].route.front().first << " second " <<Players[(id + 1) % k].route.front().second << std::endl;
         temp_another[i] = bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first];
-        bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first] = 0;
+        if (Players[(id + 1) % k].stay >= 0 || (temp_x != Players[(id + 1) % k].route.front().second && temp_y != Players[(id + 1) % k].route.front().first))
+            bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first] = 2, std::cerr << "in " << std::endl;
         Players[(id + 1) % k].route.push(Players[(id + 1) % k].route.front());
+        temp_queue.push(Players[(id + 1) % k].route.front());
         Players[(id + 1) % k].route.pop();
+    }
+
+    temp_another[Route_size] = bfsMap[temp_x][temp_y];
+    bfsMap[temp_x][temp_y] = 2;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            std::cerr << bfsMap[i][j];
+        }
+        std::cerr << std::endl;
     }
     std::queue<node> q;
     node start = node(tempY, tempX, tempX + width * tempY);
@@ -1096,22 +1113,30 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
             int tx = u.x + vx[i];
             int ty = u.y + vy[i];
             // std::cerr << "i = " << i << "bfsMap[tx][ty]" << bfsMap[tx][ty] << " " << tx << " " << ty << "vis " << vis[tx][ty] << std::endl;
-            if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && !vis[tx][ty])
+            if (tx >= 0 && ty >= 0 && tx < 10 && ty < 10 && bfsMap[tx][ty] != 0 && bfsMap[tx][ty] != 2 && !vis[tx][ty])
             {
                 if (i == 4) {
                     if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty - 1] == 0)
+                        continue ;
+                    if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
                 }
                 else if (i == 5) {
                     if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
+                    if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
+                        continue ;
                 }
                 else if (i == 6) {
                     if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty - 1] == 0)
                         continue ;
+                    if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
+                        continue ;
                 }
                 else if (i == 7) {
                     if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
+                        continue ;
+                    if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
                         continue ;
                 }
                 vis[tx][ty] = true;
@@ -1132,10 +1157,10 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         p = path[p];
     }
     for(int i = 0; i < Route_size; i++) {
-        bfsMap[Players[(id + 1) % k].route.front().second][Players[(id + 1) % k].route.front().first] = temp_another[i];
-        Players[(id + 1) % k].route.push(Players[(id + 1) % k].route.front());
-        Players[(id + 1) % k].route.pop();
+        bfsMap[temp_queue.front().second][temp_queue.front().first] = temp_another[i];
+        temp_queue.pop();
     }
+    bfsMap[temp_x][temp_y] = temp_another[Route_size];
     assert(Players[id].route.empty());
     for (int i = (int)ans.size() - 2; i >= 0; i--)
     {
@@ -1205,7 +1230,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= 0.8 && fabs(targetY - tempY) <= 0.8 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
         return PlayerDir::STOP;
     }
     if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
