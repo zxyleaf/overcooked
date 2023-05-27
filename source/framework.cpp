@@ -723,12 +723,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (/*i == 1 && */Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (i == 1 && isWashing == i) {
+        else if (/*i == 1 && */isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -737,7 +737,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 ret[i] += getDir(Players[i].targetDir);
             }
         }
-        else if (i == 0 && Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
+        else if (/*i == 0 && */Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
                     //std::cerr << "totalPlateNum = " << totalPlateNum << "usedPlateNum" << usedPlateNum << std::endl;
@@ -789,7 +789,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else if (i == 0 && Players[i].mission.allDone != 0) {
+        else if (/*i == 0 && */Players[i].mission.allDone != 0) {
             std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
             if (Players[i].mission.finish == 0) {
                 std::cerr << "id" << i << "in 0" << std::endl;
@@ -1090,8 +1090,8 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         Players[(id + 1) % k].route.pop();
     }
 
-    temp_another[Route_size] = bfsMap[temp_x][temp_y];
-    bfsMap[temp_x][temp_y] = 2;
+    temp_another[Route_size] = bfsMap[temp_y][temp_x];
+    bfsMap[temp_y][temp_x] = 2;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             std::cerr << bfsMap[i][j];
@@ -1160,7 +1160,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
         bfsMap[temp_queue.front().second][temp_queue.front().first] = temp_another[i];
         temp_queue.pop();
     }
-    bfsMap[temp_x][temp_y] = temp_another[Route_size];
+    bfsMap[temp_y][temp_x] = temp_another[Route_size];
     assert(Players[id].route.empty());
     for (int i = (int)ans.size() - 2; i >= 0; i--)
     {
@@ -1181,7 +1181,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         return PlayerDir::STOP;
     }
     if (Players[id].route.empty()) {
-        std::cerr << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+        std::cerr<< "id " << id << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
         bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
         if (Players[id].route.empty()) {
             std::cerr << "should stop " << targetX <<" " << targetY << std::endl;
@@ -1230,9 +1230,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
-        return PlayerDir::STOP;
-    }
+//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+//        return PlayerDir::STOP;
+//    }
     if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
         if (targetY - tempY > esp) {
             if (Players[id].Y_Velocity < 3)
