@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.31;
+const double esp = 0.36;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -318,8 +318,9 @@ bool frame_read(int nowFrame)
                 Entity[i].containerKind = ContainerKind::Plate, PlateNum++;
             else if (s == "DirtyPlates")
             {
-                Entity[i].containerKind = ContainerKind::DirtyPlates, dirtyPlateNum++;
+                Entity[i].containerKind = ContainerKind::DirtyPlates;
                 tmp >> Entity[i].sum;
+                dirtyPlateNum = Entity[i].sum;
             }
             else
                 Entity[i].entity.push_back(s);
@@ -686,11 +687,12 @@ std::pair<std::string, std::string> dealWithAction() {
             else
                 ret[i] = "Move ";
             Players[i].stay--;
+
             if (Players[i].stay == 0 && isWashing == i) {
                 isWashing = 3;
             }
             else if (Players[i].stay == 0) {
-                //std::cerr << "is 3 " << Players[i].mission.Places.top() << std::endl;
+                std::cerr << "is 3 " << Players[i].mission.Places.top() << std::endl;
                 Players[i].mission.finish = 3; // 切完了拿起来
                 ret[i] = getAction(PlayerAction::PutOrPick);
                 ret[i] += getDir(Players[i].targetDir);
@@ -723,7 +725,7 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 1 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
@@ -844,7 +846,7 @@ std::pair<std::string, std::string> dealWithAction() {
             else if (Players[i].mission.finish == 2) {
                 std::cerr << "id" << i << "in 2" << std::endl;
                 if (Players[i].mission.Places.top() == "chop") {
-                    Players[i].stay = 180 * Players[i].sum;
+                    Players[i].stay = 90 * Players[i].sum;
                     ret[i] = "Move ";
                 }
                 else {
@@ -1024,7 +1026,7 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
-        else if (i == 1 && dirtyPlateNum > 0) {
+        else if (i == 1 && dirtyPlateNum > 1) {
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
         }
     }
@@ -1173,7 +1175,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
        std::pair<int, int> temp;
     double temp_esp = esp;
     if (id == isWashing && Players[id].route.front().first == (int )sinkPlace.first) {
-        temp_esp = 0.1;
+        temp_esp = 0.05;
     }
     if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
         if (Players[id].route.empty() == 0) {
