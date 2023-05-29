@@ -655,18 +655,18 @@ std::pair<std::string, std::string> dealWithAction() {
     if (tooClose()) {
         times++;
     }
-    if (times >= 120) {
-        if (Players[1].stay <= 0)
-            ret[1] = "Move L";
-        if (Players[0].stay <= 0)
-            ret[0] = "Move R";
-        adjust++;
-        if (adjust == 18) {
-            times = 0;
-            adjust = 0;
-        }
-        return std::make_pair(ret[0], ret[1]);
-    }
+//    if (times >= 120) {
+//        if (Players[1].stay <= 0)
+//            ret[1] = "Move L";
+//        if (Players[0].stay <= 0)
+//            ret[0] = "Move R";
+//        adjust++;
+//        if (adjust == 18) {
+//            times = 0;
+//            adjust = 0;
+//        }
+//        return std::make_pair(ret[0], ret[1]);
+//    }
     for (int i = 0; i < k; i++) {
         int anotherOne = (1 + i) % k;
         if (Players[i].containerKind == ContainerKind::Plate) {
@@ -851,7 +851,8 @@ std::pair<std::string, std::string> dealWithAction() {
             else if (Players[i].mission.finish == 2) {
                 std::cerr << "id" << i << "in 2" << std::endl;
                 if (Players[i].mission.Places.top() == "chop") {
-                    Players[i].stay = 180 * Players[i].sum;
+                    Players[i].stay = 90 * Players[i].sum;
+                    /*why 180 or 90?*/
                     ret[i] = "Move ";
                 }
                 else {
@@ -1032,9 +1033,9 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
-//        else if (i == 1) {
-//            ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
-//        }
+        else if (i == 1) {
+            ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
+        }
     }
     return std::make_pair(ret[0], ret[1]);
 }
@@ -1128,32 +1129,32 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
-                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
-                        continue ;
+//                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+//                        continue ;
                 }
                 else if (i == 5) {
                     if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
                         continue ;
-                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
-                        continue ;
+//                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
+//                        continue ;
                 }
                 else if (i == 6) {
                     if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty - 1] == 0)
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
-                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
-                        continue ;
+//                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+//                        continue ;
                 }
                 else if (i == 7) {
                     if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
                         continue ;
-                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
-                        continue ;
+//                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
+//                        continue ;
                 }
                 vis[tx][ty] = true;
                 node v = node(tx, ty, ty + width * tx);
@@ -1251,9 +1252,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         assert(0);
         return PlayerDir::None;
     }
-//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
-//        return PlayerDir::STOP;
-//    }
+    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 4.8 || fabs(Players[id].Y_Velocity) > 4.8)) {
+        return PlayerDir::STOP;
+    }
 //    if (id == 1 && fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 1.0 || fabs(Players[id].Y_Velocity) > 1.0)) {
 //        return PlayerDir::STOP;
 //    }
