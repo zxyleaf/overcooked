@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.351;
+const double esp = 0.31;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -723,12 +723,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (/*i == 1 && */Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (/*i == 1 && */isWashing == i) {
+        else if (i == 1 && isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -737,7 +737,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 ret[i] += getDir(Players[i].targetDir);
             }
         }
-        else if (/*i == 0 && */Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
+        else if (i == 0 && Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
                     //std::cerr << "totalPlateNum = " << totalPlateNum << "usedPlateNum" << usedPlateNum << std::endl;
@@ -789,7 +789,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else if (/*i == 0 && */Players[i].mission.allDone != 0) {
+        else if (i == 0 && Players[i].mission.allDone != 0) {
             std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
             if (Players[i].mission.finish == 0) {
                 std::cerr << "id" << i << "in 0" << std::endl;
@@ -971,7 +971,7 @@ std::pair<std::string, std::string> dealWithAction() {
             if (Players[i].toEnd == 0)
                 Players[i].finish = 1;
         }
-        else if (/*i == 0 && */Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
+        else if (i == 0 && Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
             Players[i].mission.allDone--;
             Players[i].mission.Places.pop();
             std::pair<int, int> int_loc;
@@ -1171,7 +1171,11 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
 }
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
        std::pair<int, int> temp;
-    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+    double temp_esp = esp;
+    if (id == isWashing && Players[id].route.front().first == (int )sinkPlace.first) {
+        temp_esp = 0.1;
+    }
+    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
         if (Players[id].route.empty() == 0) {
             Players[id].route.pop();
         }
@@ -1193,7 +1197,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         targetX = targetX + 0.5;
         targetY = targetY + 0.5;
         std::cerr << "after targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
             //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
@@ -1209,7 +1213,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         targetX = targetX + 0.5;
         targetY = targetY + 0.5;
         std::cerr << "targetX " << fabs(targetX - tempX) << " " << fabs(targetY - tempY) << "temp "<< tempX << " " << tempY << std::endl;
-        if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
             std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
             Players[id].route.pop();
             if (Players[id].route.empty()) {
@@ -1227,73 +1231,73 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         }
         std::cerr << "another to " << targetX << " " << targetY << std::endl;
     }
-    if (fabs(targetX - tempX) <= esp && fabs(targetY - tempY) <= esp) {
+    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 3.1 || fabs(Players[id].Y_Velocity) > 3.1)) {
-        return PlayerDir::STOP;
-    }
-    if (fabs(targetX - tempX) <= esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
-        if (targetY - tempY > esp) {
+//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 4.8 || fabs(Players[id].Y_Velocity) > 4.8)) {
+//        return PlayerDir::STOP;
+//    }
+    if (fabs(targetX - tempX) <= temp_esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
+        if (targetY - tempY > temp_esp) {
             if (Players[id].Y_Velocity < 3)
                 return PlayerDir::D;
             else
                 return PlayerDir::STOP;
         }
-        else if (targetY - tempY < esp) {
+        else if (targetY - tempY < temp_esp) {
             return PlayerDir::U;
         }
     }
-    else if (fabs(targetY - tempY) <= esp) {
-        if (targetX - tempX > esp) {
+    else if (fabs(targetY - tempY) <= temp_esp) {
+        if (targetX - tempX > temp_esp) {
             return PlayerDir::R;
         }
-        else if (targetX - tempX < esp) {
+        else if (targetX - tempX < temp_esp) {
             return PlayerDir::L;
         }
     }
     else {
-        if (targetX - tempX > esp && targetY - tempY > esp) {
+        if (targetX - tempX > temp_esp && targetY - tempY > temp_esp) {
             return PlayerDir::DR;
         }
-        else if (targetX - tempX > esp && tempY - targetY > esp) {
+        else if (targetX - tempX > temp_esp && tempY - targetY > temp_esp) {
             return PlayerDir::UR;
         }
-        else if (tempX - targetX > esp && targetY - tempY > esp) {
+        else if (tempX - targetX > temp_esp && targetY - tempY > temp_esp) {
             return PlayerDir::DL;
         }
-        else if (tempX - targetX > esp && tempY - targetY > esp) {
+        else if (tempX - targetX > temp_esp && tempY - targetY > temp_esp) {
             return PlayerDir::UL;
         }
     }
-    if (targetX - tempX > esp) {
+    if (targetX - tempX > temp_esp) {
         return PlayerDir::R;
     }
-    else if (targetY - tempY > esp) {
+    else if (targetY - tempY > temp_esp) {
         return PlayerDir::D;
     }
-    else if (targetX - tempX < esp) {
+    else if (targetX - tempX < temp_esp) {
         return PlayerDir::L;
     }
-    else if (targetY - tempY < esp) {
+    else if (targetY - tempY < temp_esp) {
         return PlayerDir::U;
     }
-    if (targetX - tempX > esp && targetY - tempY > esp) {
+    if (targetX - tempX > temp_esp && targetY - tempY > temp_esp) {
         return PlayerDir::DR;
     }
-    else if (targetX - tempX > esp && tempY - targetY > esp) {
+    else if (targetX - tempX > temp_esp && tempY - targetY > temp_esp) {
         return PlayerDir::UR;
     }
-    else if (tempX - targetX > esp && targetY - tempY > esp) {
+    else if (tempX - targetX > temp_esp && targetY - tempY > temp_esp) {
         return PlayerDir::DL;
     }
-    else if (tempX - targetX > esp && tempY - targetY > esp) {
+    else if (tempX - targetX > temp_esp && tempY - targetY > temp_esp) {
         return PlayerDir::UL;
     }
-    else if (fabs(targetX - tempX) <= esp && targetY - tempY > esp) {
+    else if (fabs(targetX - tempX) <= temp_esp && targetY - tempY > temp_esp) {
         return PlayerDir::D;
     }
-    else if (fabs(targetX - tempX) <= esp && tempY - targetY > esp) {
+    else if (fabs(targetX - tempX) <= temp_esp && tempY - targetY > temp_esp) {
         return PlayerDir::U;
     }
     else if (targetX - tempX > esp && fabs(targetY - tempY) <= esp) {
