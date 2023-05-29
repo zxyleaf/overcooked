@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.36;
+const double esp = 0.45;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -725,12 +725,12 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 1 && isWashing == 3) {
+        else if (/*i == 1 && */Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
         }
-        else if (i == 1 && isWashing == i) {
+        else if (/*i == 1 && */isWashing == i) {
             if (Players[i].containerKind == ContainerKind::DirtyPlates) {
                 ret[i] = addTarget(i, sinkPlace, sinkPlace_int.first, sinkPlace_int.second);
             }
@@ -739,7 +739,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 ret[i] += getDir(Players[i].targetDir);
             }
         }
-        else if (i == 0 && Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
+        else if (/*i == 0 && */Players[i].OrderId == INF && usedPlateNum < totalPlateNum) {
             for (int j = 0; j < orderCount; j++) {
                 if (!Order[j].PlayerId && Order[j].validFrame > 60) {
                     //std::cerr << "totalPlateNum = " << totalPlateNum << "usedPlateNum" << usedPlateNum << std::endl;
@@ -791,7 +791,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 }
             }
         }
-        else if (i == 0 && Players[i].mission.allDone != 0) {
+        else if (/*i == 0 && */Players[i].mission.allDone != 0) {
             std::cerr << "id" << i <<  "  in mission " << Players[i].mission.Places.top() <<" finish is " << Players[i].mission.finish << " allDone =" << Players[i].mission.allDone << std::endl;
             if (Players[i].mission.finish == 0) {
                 std::cerr << "id" << i << "in 0" << std::endl;
@@ -860,6 +860,7 @@ std::pair<std::string, std::string> dealWithAction() {
                 std::pair<int, int> int_loc;
                 std::pair<double, double> double_loc;
                 stringToLoc(i ,Players[i].mission.Places.top(), int_loc, double_loc);
+                std::cerr << "target " << int_loc.first << " " << int_loc.second << std::endl;
                 Players[i].targetPlace = Players[i].mission.Places.top();
                 ret[i] = addTarget(i, double_loc, int_loc.first, int_loc.second);
                 Players[i].mission.finish = 0;
@@ -973,7 +974,7 @@ std::pair<std::string, std::string> dealWithAction() {
             if (Players[i].toEnd == 0)
                 Players[i].finish = 1;
         }
-        else if (i == 0 && Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
+        else if (/*i == 0 &&*/ Players[i].OrderId != INF && PlateNum > 0 && Players[i].finish == 1 && Players[i].toEnd == 0 && Players[i].over == 0) {
             Players[i].mission.allDone--;
             Players[i].mission.Places.pop();
             std::pair<int, int> int_loc;
@@ -1026,7 +1027,7 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
-        else if (i == 1 && dirtyPlateNum > 1) {
+        else if (i == 1 && dirtyPlateNum > 0) {
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
         }
     }
@@ -1234,6 +1235,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         std::cerr << "another to " << targetX << " " << targetY << std::endl;
     }
     if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
+        assert(0);
         return PlayerDir::None;
     }
 //    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 4.8 || fabs(Players[id].Y_Velocity) > 4.8)) {
@@ -1309,6 +1311,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         return PlayerDir::L;
     }
     else {
+        assert(0);
         return PlayerDir::None;
     }
 }
