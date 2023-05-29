@@ -730,7 +730,7 @@ std::pair<std::string, std::string> dealWithAction() {
 
             }
         }
-        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 0 && isWashing == 3) {
+        else if (i == 1 && Players[i].OrderId == INF && dirtyPlateNum > 1 && isWashing == 3) {
             /* todo: 洗盘子 (暂时只有一个人) */
             ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
             isWashing = i;
@@ -1128,11 +1128,15 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
+                    if (id == 1 && (bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+                        continue ;
                 }
                 else if (i == 5) {
                     if (bfsMap[tx - 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
+                        continue ;
+                    if (id == 1 && (bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
                         continue ;
                 }
                 else if (i == 6) {
@@ -1140,11 +1144,15 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
+                    if (id == 1 && (bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+                        continue ;
                 }
                 else if (i == 7) {
                     if (bfsMap[tx + 1][ty] == 0 || bfsMap[tx][ty + 1] == 0)
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
+                        continue ;
+                    if (id == 1 && (bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
                         continue ;
                 }
                 vis[tx][ty] = true;
@@ -1246,6 +1254,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
     if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
         return PlayerDir::STOP;
     }
+//    if (id == 1 && fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 1.0 || fabs(Players[id].Y_Velocity) > 1.0)) {
+//        return PlayerDir::STOP;
+//    }
     if (fabs(targetX - tempX) <= temp_esp && getTileKind(Map[(int) tempY][(int)tempX]) == TileKind::Floor) {
         if (targetY - tempY > temp_esp) {
             if (Players[id].Y_Velocity < 3)
