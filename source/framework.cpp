@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.45;
+const double esp = 0.35;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
@@ -657,9 +657,9 @@ std::pair<std::string, std::string> dealWithAction() {
     }
     if (times >= 120) {
         if (Players[1].stay <= 0)
-            ret[1] = "Move R";
+            ret[1] = "Move L";
         if (Players[0].stay <= 0)
-            ret[0] = "Move L";
+            ret[0] = "Move R";
         adjust++;
         if (adjust == 18) {
             times = 0;
@@ -1128,7 +1128,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
-                    if (id == 1 && (bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
                         continue ;
                 }
                 else if (i == 5) {
@@ -1136,7 +1136,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx - 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
                         continue ;
-                    if (id == 1 && (bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
+                    if ((bfsMap[tx - 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
                         continue ;
                 }
                 else if (i == 6) {
@@ -1144,7 +1144,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty - 1] == 2)
                         continue ;
-                    if (id == 1 && (bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
+                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty - 1] == 2))
                         continue ;
                 }
                 else if (i == 7) {
@@ -1152,7 +1152,7 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
                         continue ;
                     if (bfsMap[tx + 1][ty] == 2 && bfsMap[tx][ty + 1] == 2)
                         continue ;
-                    if (id == 1 && (bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
+                    if ((bfsMap[tx + 1][ty] == 2 || bfsMap[tx][ty + 1] == 2))
                         continue ;
                 }
                 vis[tx][ty] = true;
