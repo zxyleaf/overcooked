@@ -10,7 +10,7 @@
 #include <cmath>
 
 const int INF = 0x3f3f3f;
-const double esp = 0.45;
+const double esp = 0.39;
 /* 按照读入顺序定义 */
 int width, height;
 char Map[20 + 5][20 + 5];
