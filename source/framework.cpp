@@ -659,7 +659,7 @@ std::pair<std::string, std::string> dealWithAction() {
         if (Players[1].stay <= 0)
             ret[1] = "Move UL";
         if (Players[0].stay <= 0)
-            ret[0] = "Move R";
+            ret[0] = "Move RD";
         adjust++;
         if (adjust == 18) {
             times = 0;
@@ -1189,72 +1189,71 @@ void bfs(int id, int targetX, int targetY, int tempX, int tempY) {
 PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, double tempY) {
        std::pair<int, int> temp;
     double temp_esp = esp;
-    if (id == isWashing && Players[id].route.front().first == (int )sinkPlace.first) {
-        temp_esp = 0.05;
-    }
-    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
-        if (Players[id].route.empty() == 0) {
-            Players[id].route.pop();
-        }
-        return PlayerDir::None;
-    }
-    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
-        return PlayerDir::STOP;
-    }
-    if (Players[id].route.empty()) {
-        std::cerr<< "id " << id << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
-        if (Players[id].route.empty()) {
-            std::cerr << "should stop " << targetX <<" " << targetY << std::endl;
-            return PlayerDir::STOP;
-        }
-        temp = Players[id].route.front();
-        targetX = (double )temp.first;
-        targetY = (double )temp.second;
-        targetX = targetX + 0.5;
-        targetY = targetY + 0.5;
-        std::cerr << "after targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
-        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
-            //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
-            Players[id].route.pop();
-            if (Players[id].route.empty()) {
-                return PlayerDir::None;
-            }
-        }
-    }
-    else {
-        assert(Players[id].route.empty() == 0);
-        temp = Players[id].route.front();
-        targetX = temp.first;
-        targetY = temp.second;
-        targetX = targetX + 0.5;
-        targetY = targetY + 0.5;
-        std::cerr << "targetX " << fabs(targetX - tempX) << " " << fabs(targetY - tempY) << "temp "<< tempX << " " << tempY << std::endl;
-        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
-            std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
-            Players[id].route.pop();
-            if (Players[id].route.empty()) {
-                return PlayerDir::None;
-            }
-            else {
-                assert(Players[id].route.empty() == 0);
-                temp = Players[id].route.front();
-                targetX = temp.first;
-                targetY = temp.second;
-                targetX = targetX + 0.5;
-                targetY = targetY + 0.5;
-            }
-
-        }
-        std::cerr << "another to " << targetX << " " << targetY << std::endl;
-    }
-    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
-        assert(0);
-        return PlayerDir::None;
-    }
-//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+//    if (id == isWashing && Players[id].route.front().first == (int )sinkPlace.first) {
+//        temp_esp = 0.05;
+//    }
+//    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
+//        if (Players[id].route.empty() == 0) {
+//            Players[id].route.pop();
+//        }
+//        return PlayerDir::None;
+//    }
+//    if ((Players[id].X_Velocity - 4.2) > 0.00005 || (Players[id].Y_Velocity - 4.2) > 0.00005) {
 //        return PlayerDir::STOP;
 //    }
+//    if (Players[id].route.empty()) {
+//        std::cerr<< "id " << id << "targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+//        bfs(id, (int )targetX, (int )targetY, (int )tempX, (int )tempY);
+//        if (Players[id].route.empty()) {
+//            std::cerr << "should stop " << targetX <<" " << targetY << std::endl;
+//            return PlayerDir::STOP;
+//        }
+//        temp = Players[id].route.front();
+//        targetX = (double )temp.first;
+//        targetY = (double )temp.second;
+//        targetX = targetX + 0.5;
+//        targetY = targetY + 0.5;
+//        std::cerr << "after targetX " << targetX << " " << targetY << "temp "<< tempX << " " << tempY << std::endl;
+//        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
+//            //std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
+//            Players[id].route.pop();
+//            if (Players[id].route.empty()) {
+//                return PlayerDir::None;
+//            }
+//        }
+//    }
+//    else {
+//        assert(Players[id].route.empty() == 0);
+//        temp = Players[id].route.front();
+//        targetX = temp.first;
+//        targetY = temp.second;
+//        targetX = targetX + 0.5;
+//        targetY = targetY + 0.5;
+//        std::cerr << "targetX " << fabs(targetX - tempX) << " " << fabs(targetY - tempY) << "temp "<< tempX << " " << tempY << std::endl;
+//        if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
+//            std::cerr << "arrived at " << tempX << " " << tempY << std::endl;
+//            Players[id].route.pop();
+//            if (Players[id].route.empty()) {
+//                return PlayerDir::None;
+//            }
+//            else {
+//                assert(Players[id].route.empty() == 0);
+//                temp = Players[id].route.front();
+//                targetX = temp.first;
+//                targetY = temp.second;
+//                targetX = targetX + 0.5;
+//                targetY = targetY + 0.5;
+//            }
+//
+//        }
+//        std::cerr << "another to " << targetX << " " << targetY << std::endl;
+//    }
+    if (fabs(targetX - tempX) <= temp_esp && fabs(targetY - tempY) <= temp_esp) {
+        return PlayerDir::None;
+    }
+    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+        return PlayerDir::STOP;
+    }
 //    if (id == 1 && fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 1.0 || fabs(Players[id].Y_Velocity) > 1.0)) {
 //        return PlayerDir::STOP;
 //    }
@@ -1328,7 +1327,6 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         return PlayerDir::L;
     }
     else {
-        assert(0);
         return PlayerDir::None;
     }
 }
