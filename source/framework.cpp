@@ -655,18 +655,18 @@ std::pair<std::string, std::string> dealWithAction() {
     if (tooClose()) {
         times++;
     }
-    if (times >= 120) {
-        if (Players[1].stay <= 0)
-            ret[1] = "Move R";
-        if (Players[0].stay <= 0)
-            ret[0] = "Move L";
-        adjust++;
-        if (adjust == 18) {
-            times = 0;
-            adjust = 0;
-        }
-        return std::make_pair(ret[0], ret[1]);
-    }
+//    if (times >= 120) {
+//        if (Players[1].stay <= 0)
+//            ret[1] = "Move R";
+//        if (Players[0].stay <= 0)
+//            ret[0] = "Move L";
+//        adjust++;
+//        if (adjust == 18) {
+//            times = 0;
+//            adjust = 0;
+//        }
+//        return std::make_pair(ret[0], ret[1]);
+//    }
     for (int i = 0; i < k; i++) {
         int anotherOne = (1 + i) % k;
         if (Players[i].containerKind == ContainerKind::Plate) {
