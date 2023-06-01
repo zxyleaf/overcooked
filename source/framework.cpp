@@ -657,7 +657,7 @@ std::pair<std::string, std::string> dealWithAction() {
     }
     if (times >= 120) {
         if (Players[1].stay <= 0)
-            ret[1] = "Move L";
+            ret[1] = "Move U";
         if (Players[0].stay <= 0)
             ret[0] = "Move R";
         adjust++;
@@ -1252,7 +1252,7 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         assert(0);
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 4.8 || fabs(Players[id].Y_Velocity) > 4.8)) {
+    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
         return PlayerDir::STOP;
     }
 //    if (id == 1 && fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 1.0 || fabs(Players[id].Y_Velocity) > 1.0)) {
