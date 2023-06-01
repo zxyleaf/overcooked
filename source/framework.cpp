@@ -1252,9 +1252,9 @@ PlayerDir dealWithDir(int id, double targetX, double targetY, double tempX, doub
         assert(0);
         return PlayerDir::None;
     }
-    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
-        return PlayerDir::STOP;
-    }
+//    if (fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 2.5 || fabs(Players[id].Y_Velocity) > 2.5)) {
+//        return PlayerDir::STOP;
+//    }
 //    if (id == 1 && fabs(targetX - tempX) <= 0.81 && fabs(targetY - tempY) <= 0.81 && (fabs(Players[id].X_Velocity) > 1.0 || fabs(Players[id].Y_Velocity) > 1.0)) {
 //        return PlayerDir::STOP;
 //    }
