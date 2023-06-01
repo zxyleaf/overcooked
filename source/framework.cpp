@@ -1033,9 +1033,9 @@ std::pair<std::string, std::string> dealWithAction() {
             }
             ret[i] = addTarget(i, Ingredient[idx].availableLoc, Ingredient[idx].x, Ingredient[idx].y);
         }
-        else if (i == 1) {
-            ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
-        }
+//        else if (i == 1) {
+//            ret[i] = addTarget(i, PlateReturn, PlateReturn_int.first, PlateReturn_int.second);
+//        }
     }
     return std::make_pair(ret[0], ret[1]);
 }
