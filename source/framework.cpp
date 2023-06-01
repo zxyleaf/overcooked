@@ -657,9 +657,9 @@ std::pair<std::string, std::string> dealWithAction() {
     }
     if (times >= 120) {
         if (Players[1].stay <= 0)
-            ret[1] = "Move DL";
+            ret[1] = "Move R";
         if (Players[0].stay <= 0)
-            ret[0] = "Move RU";
+            ret[0] = "Move L";
         adjust++;
         if (adjust == 18) {
             times = 0;
